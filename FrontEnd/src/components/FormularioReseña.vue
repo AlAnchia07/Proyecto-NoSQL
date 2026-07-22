@@ -1,0 +1,69 @@
+<script setup>
+    import { ref, onMounted } from "vue";
+    import { crearReseña } from "@/services/ResenaService";
+    import ModalReseña from "./ModalReseña.vue";
+    import { useUsuarioStore } from "../stores/UsuarioStore";
+
+    const usuarioStore = useUsuarioStore();
+    const mostrarModal = ref(false);
+
+    //temporal
+    onMounted(() => {
+        usuarioStore.simularLogin();
+    });
+
+    const props = defineProps({
+        modo: {
+            type: String,
+            default: "crear"
+        }
+    })
+
+    const emit = defineEmits([
+        "actualizar"
+    ]);
+
+    async function guardarReseña(datos){
+        if(props.modo === "editar"){
+            //Editar
+        } else {
+            try{
+                const nuevaReseña = {
+                    id_cliente: usuarioStore.perfil._id,
+                    id_restaurante: "6a5d7842972a8f68691625af",
+                    comentario: datos.comentario,
+                    calificacion: datos.calificacion
+                };
+
+                const respuesta = await crearReseña(nuevaReseña);
+                console.log(respuesta);
+                mostrarModal.value = false;
+                emit("actualizar");
+            }catch(error){
+                console.log(error);
+            }
+        }
+    }
+
+
+
+
+</script>
+
+<template>
+        <button @click="mostrarModal = true" type="button" class="btn btn-success" style="width: 12rem;">
+            <i class="bi bi-pen-fill"></i>
+            Nueva reseña
+        </button>
+
+    <ModalReseña
+        :modo="modo"
+        v-if="mostrarModal"
+        @cerrar="mostrarModal = false"
+        @guardar = "guardarReseña"
+    />
+</template>
+
+<style scoped>
+    
+</style>
