@@ -10,7 +10,15 @@ class NotificacionService {
     }
 
     async marcarLeida(id){
-        return await Notificacion.findByIdAndUpdate(id, {leido:true}, { new: true })
+        return await Notificacion.updateMany(
+            {
+                id_usuario: new mongoose.Types.ObjectId(id),
+                leido:false
+            },
+            {
+                leido:true
+            }
+        );
     }
 
     async traerNotificaciones(id) {
@@ -40,6 +48,13 @@ class NotificacionService {
                 }
             }
         ]);
+    }
+
+    async contarNoLeidas(id_usuario) {
+        return await Notificacion.countDocuments({
+            id_usuario: new mongoose.Types.ObjectId(id_usuario),
+            leido: false
+        });
     }
 }
 

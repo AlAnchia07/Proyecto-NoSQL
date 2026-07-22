@@ -22,7 +22,7 @@ export const useUsuarioStore = defineStore("usuario", {
         simularLogin() {
 
             this.usuario = {
-                _id: "6a5d770d9b6e977d303fbfec",
+                _id: "6a5d77bb34d10e8bda019b79",
                 correo_registro: "cliente@email.com",
                 tipo_usuario: "CLIENTE"
             };

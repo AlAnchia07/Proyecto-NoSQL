@@ -1,22 +1,7 @@
 const notificacionService = require("../services/NotificacionService")
 
 class NotificacionController {
-    async createNotificacion(req, res) {
-        try {
-            const notificacion = await notificacionService.createNotificacion(
-                req.body
-            );
-
-            res.status(201).json(notificacion);
-
-        } catch (err) {
-            res.status(500).json({
-                error: err.message
-            });
-        }
-    }
-
-
+    
     async marcarLeida(req, res) {
         try {
             const notificacion = await notificacionService.marcarLeida(
@@ -57,6 +42,24 @@ class NotificacionController {
             });
         }
     }
+
+
+    async contarNoLeidas(req, res) {
+    try {
+        const cantidad = await notificacionService.contarNoLeidas(
+            req.params.id
+        );
+
+        res.status(200).json({
+            cantidad
+        });
+
+    } catch (err) {
+        res.status(500).json({
+            error: err.message
+        });
+    }
+}
 }
 
 module.exports = new NotificacionController();
