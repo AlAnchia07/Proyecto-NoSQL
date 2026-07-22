@@ -1,9 +1,10 @@
 <script setup>
-    import ListaResenas from "./components/reseñas/ListaReseña.vue";
+    import CampanaNotificaciones from './components/notificaciones/CampanaNotificaciones.vue';
 </script>
     
 <template>
-    <ListaResenas />
+     <router-view />
+    <CampanaNotificaciones />
 </template>
 
 <style scoped></style>
