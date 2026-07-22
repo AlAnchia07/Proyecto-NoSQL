@@ -1,5 +1,5 @@
 <script setup>
-    import ListaResenas from "./components/ListaReseña.vue";
+    import ListaResenas from "./components/reseñas/ListaReseña.vue";
 </script>
     
 <template>

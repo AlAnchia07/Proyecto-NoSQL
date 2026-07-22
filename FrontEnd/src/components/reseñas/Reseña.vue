@@ -2,13 +2,11 @@
 import { ref, onMounted } from "vue";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { useUsuarioStore } from "../stores/UsuarioStore";
+import { useUsuarioStore } from "../../stores/UsuarioStore";
 import ModalGenerico from "./ModalGenerico.vue";
 import ModalReseña from "./ModalReseña.vue";
 
 const usuarioStore = useUsuarioStore();
-
-usuarioStore.simularLogin();
 
 const mostrarModal = ref(false);
 const mostrarModalEdicion = ref(false);

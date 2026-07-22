@@ -8,6 +8,10 @@ import ReseñaCard from "./Reseña.vue";
 import FiltradoReseña from "./FiltradoReseñas.vue"
 import FormularioReseña from "./FormularioReseña.vue";
 import Resumen from "./ResumenReseñas.vue";
+import { useRoute } from "vue-router";
+
+const route = useRoute();
+const idRestaurante = route.params.id;
 
 const reseñas = ref([]);
 const filtroEstrellas = ref(null);
@@ -28,7 +32,7 @@ function cambiarFiltro(valor){
 async function cargarReseñas() {
     try {
         const datos = await obtenerReseñasRestaurante(
-            "6a5d7842972a8f68691625af"
+            idRestaurante
         );
 
         reseñas.value = datos;
@@ -41,7 +45,7 @@ async function cargarReseñas() {
 async function cargarResumen() {
     try{
         const datos = await obtenerResumenReseñas(
-            "6a5d7842972a8f68691625af"
+            idRestaurante
         )
         console.log(resumen)
         resumen.value = datos
@@ -111,7 +115,7 @@ onMounted(actualizarTodo);
 
         <div class="d-flex flex-wrap gap-3 justify-content-between pb-2">
             <FiltradoReseña @filtrar="cambiarFiltro" :etiquetas="resumen"/>
-            <FormularioReseña @actualizar="actualizarTodo"/>
+            <FormularioReseña @actualizar="actualizarTodo" :idRestaurante="idRestaurante"/>
         </div>
 
         <TransitionGroup name="lista-reseñas" tag="div" class="d-flex flex-column gap-3">

@@ -2,20 +2,18 @@
     import { ref, onMounted } from "vue";
     import { crearReseña } from "@/services/ResenaService";
     import ModalReseña from "./ModalReseña.vue";
-    import { useUsuarioStore } from "../stores/UsuarioStore";
+    import { useUsuarioStore } from "../../stores/UsuarioStore";
 
     const usuarioStore = useUsuarioStore();
     const mostrarModal = ref(false);
-
-    //temporal
-    onMounted(() => {
-        usuarioStore.simularLogin();
-    });
 
     const props = defineProps({
         modo: {
             type: String,
             default: "crear"
+        },
+        idRestaurante: {
+            type: String
         }
     })
 
@@ -30,7 +28,7 @@
             try{
                 const nuevaReseña = {
                     id_cliente: usuarioStore.perfil._id,
-                    id_restaurante: "6a5d7842972a8f68691625af",
+                    id_restaurante: props.idRestaurante,
                     comentario: datos.comentario,
                     calificacion: datos.calificacion
                 };
