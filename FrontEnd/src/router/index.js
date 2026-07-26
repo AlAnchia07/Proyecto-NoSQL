@@ -5,6 +5,7 @@ import RestaurantLayout from "../layouts/RestaurantLayout.vue";
 
 import MyOrdersView from "../views/client/MyOrdersView.vue";
 import RestaurantOrdersView from "../views/restaurant/RestaurantOrdersView.vue";
+import NotificacionesView from "../views/NotificacionesView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -48,6 +49,12 @@ const router = createRouter({
           }
         }
       ]
+    },
+
+    {
+      path: "/notificaciones",
+      name: "notificaciones",
+      component: NotificacionesView
     },
 
     {

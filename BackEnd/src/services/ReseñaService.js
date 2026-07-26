@@ -1,0 +1,72 @@
+const reseña = require("../models/Reseña");
+const cliente = require("../models/Cliente");
+const restaurante = require("../models/Restaurante");
+const mongoose = require("mongoose");
+
+class ReseñaService {
+    
+    async createReseña(data) {
+        const nuevaReseña = new reseña(data);
+        await nuevaReseña.save();
+        return nuevaReseña;
+    }
+
+    async updateReseña(id, data) {
+        return await reseña.findByIdAndUpdate(id, data, {new:true});
+    }
+
+    async deleteReseña(id){
+        return await reseña.findByIdAndDelete(id);
+    }
+
+    async restauranteReseñas(id){
+        return await reseña.find({
+            id_restaurante: new mongoose.Types.ObjectId(id)
+        })
+        .sort({ fecha: -1 })
+        .populate("id_cliente","nombre url_imagen")
+    }
+
+    async resumenReseñas(id){
+        return await reseña.aggregate([
+            {
+                $match: {
+                    id_restaurante: new mongoose.Types.ObjectId(id)
+                }
+            },
+            {
+                $facet: {
+                    distribucion: [
+                        {
+                            $group: {
+                                _id:"$calificacion",
+                                cantidad: { $sum: 1 }
+                            }
+                        },
+                        {
+                            $sort: { _id: 1 }
+                        }
+                    ],
+                    resumen: [
+                        {
+                            $group: {
+                                _id:null,
+                                total: { $sum: 1 },
+                                promedio: { $avg: "$calificacion"}
+                            }
+                        }
+                    ]
+
+                }
+            }
+        ])
+    }
+
+    async filtrarReseñasCliente(id){
+        return await reseña.find({id_cliente : new mongoose.Types.ObjectId(id)}).populate("id_restaurante","nombre url_imagen")
+    }
+
+
+}
+
+module.exports = new ReseñaService();
