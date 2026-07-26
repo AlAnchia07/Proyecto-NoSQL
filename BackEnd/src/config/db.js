@@ -1,10 +1,13 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI);
+    const mongoUri =
+      process.env.MONGODB_URI || "mongodb://localhost:27017/BiteUp";
 
-    console.log('MongoDB connected');
+    await mongoose.connect(mongoUri);
+
+    console.log("MongoDB connected");
   } catch (err) {
     console.error(err.message);
     process.exit(1);

@@ -1,9 +1,13 @@
 <script setup>
-
 </script>
-    
+
 <template>
-     <router-view />
+  <RouterView />
 </template>
 
-<style scoped></style>
+<style scoped>
+main {
+  padding: 40px;
+  font-family: Arial, sans-serif;
+}
+</style>
