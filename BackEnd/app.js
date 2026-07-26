@@ -1,3 +1,20 @@
+
+/*
+=========================================
+
+ESTE ARCHIVO NO SE UTILIZA.
+
+El backend se ejecuta desde:
+
+    BackEnd/src/app.js
+
+según la configuración de package.json:
+
+"main": "src/app.js"
+
+=========================================
+
+
 // src/app.js
 require('dotenv').config();
 
@@ -33,4 +50,4 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Servidor ejecutándose en el puerto ${PORT}`);
 });
-
+*/

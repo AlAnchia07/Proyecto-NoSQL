@@ -3,8 +3,10 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
+
 const connectDB = require("./config/db");
 
+// Rutas
 const pedidoRoutes = require("./routes/pedidoRoutes");
 const reseñaRoutes = require("./routes/ReseñaRoutes");
 const notificacionRoutes = require("./routes/NotificacionRoutes");
@@ -14,24 +16,31 @@ const productoRoutes = require("./routes/productoRoutes");
 
 const app = express();
 
+// Conectar a MongoDB
 connectDB();
 
+// Middlewares
 app.use(cors());
 app.use(express.json());
 
+// Ruta de prueba
 app.get("/api/prueba", (req, res) => {
   res.json({
     mensaje: "Backend correcto ejecutándose"
   });
 });
 
+// Endpoints
 app.use("/api/pedidos", pedidoRoutes);
+
 app.use("/api", reseñaRoutes);
 app.use("/api", notificacionRoutes);
+
 app.use("/api/categorias", categoriaRoutes);
 app.use("/api/restaurantes", restauranteRoutes);
 app.use("/api/productos", productoRoutes);
 
+// Puerto
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {

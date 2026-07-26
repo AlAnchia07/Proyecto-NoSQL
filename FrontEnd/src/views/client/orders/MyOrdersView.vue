@@ -80,7 +80,7 @@
 
 <script setup>
 import { onMounted, ref } from "vue";
-import { getPedidosCliente } from "../../services/pedidoService";
+import { getPedidosCliente } from "../../../services/pedidoService";
 
 const pedidos = ref([]);
 const loading = ref(true);
