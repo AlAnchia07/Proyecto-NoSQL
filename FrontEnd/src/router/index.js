@@ -3,7 +3,11 @@ import { createRouter, createWebHistory } from "vue-router";
 import ClientLayout from "../layouts/ClientLayout.vue";
 import RestaurantLayout from "../layouts/RestaurantLayout.vue";
 
-import MyOrdersView from "../views/client/MyOrdersView.vue";
+import HomeView from "../views/client/home/HomeView.vue";
+import MyOrdersView from "../views/client/orders/MyOrdersView.vue";
+import RestaurantDetailView from "../views/client/restaurants/RestaurantDetailView.vue";
+import CheckoutView from "../views/client/checkout/CheckoutView.vue";
+
 import RestaurantOrdersView from "../views/restaurant/RestaurantOrdersView.vue";
 import NotificacionesView from "../views/NotificacionesView.vue";
 import RestaurantProductsView from "../views/restaurant/RestaurantProductsView.vue";
@@ -15,7 +19,7 @@ const router = createRouter({
   routes: [
     {
       path: "/",
-      redirect: "/cliente/mis-pedidos"
+      redirect: "/cliente"
     },
 
     {
@@ -24,7 +28,18 @@ const router = createRouter({
       children: [
         {
           path: "",
-          redirect: "/cliente/mis-pedidos"
+          name: "client-home",
+          component: HomeView
+        },
+        {
+          path: "restaurante/:id",
+          name: "client-restaurant-detail",
+          component: RestaurantDetailView
+        },
+        {
+          path: "checkout",
+          name: "client-checkout",
+          component: CheckoutView
         },
         {
           path: "mis-pedidos",
@@ -77,7 +92,7 @@ const router = createRouter({
 
     {
       path: "/:pathMatch(.*)*",
-      redirect: "/cliente/mis-pedidos"
+      redirect: "/cliente"
     }
   ]
 });

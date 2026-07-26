@@ -1,27 +1,48 @@
 <template>
   <aside class="client-sidebar">
     <nav class="client-sidebar__nav">
-      <RouterLink to="/cliente/inicio" class="client-sidebar__link">
+      <RouterLink
+        to="/cliente"
+        class="client-sidebar__link"
+        active-class=""
+        exact-active-class="client-sidebar__link--active"
+      >
         <House class="client-sidebar__icon" />
         <span>Inicio</span>
       </RouterLink>
 
-      <RouterLink to="/cliente/explorar" class="client-sidebar__link">
+      <RouterLink
+        to="/cliente/explorar"
+        class="client-sidebar__link"
+        active-class="client-sidebar__link--active"
+      >
         <Search class="client-sidebar__icon" />
         <span>Explorar</span>
       </RouterLink>
 
-      <RouterLink to="/cliente/favoritos" class="client-sidebar__link">
+      <RouterLink
+        to="/cliente/favoritos"
+        class="client-sidebar__link"
+        active-class="client-sidebar__link--active"
+      >
         <Heart class="client-sidebar__icon" />
         <span>Favoritos</span>
       </RouterLink>
 
-      <RouterLink to="/cliente/mis-pedidos" class="client-sidebar__link">
+      <RouterLink
+        to="/cliente/mis-pedidos"
+        class="client-sidebar__link"
+        active-class="client-sidebar__link--active"
+      >
         <ReceiptText class="client-sidebar__icon" />
         <span>Mis pedidos</span>
       </RouterLink>
 
-      <RouterLink to="/cliente/perfil" class="client-sidebar__link">
+      <RouterLink
+        to="/cliente/perfil"
+        class="client-sidebar__link"
+        active-class="client-sidebar__link--active"
+      >
         <UserRound class="client-sidebar__icon" />
         <span>Perfil</span>
       </RouterLink>
@@ -86,13 +107,13 @@ import {
   color: var(--green-main);
 }
 
-.client-sidebar__link.router-link-active {
+.client-sidebar__link--active {
   background-color: #edf7ef;
   color: var(--green-main);
   font-weight: 700;
 }
 
-.client-sidebar__link.router-link-active::before {
+.client-sidebar__link--active::before {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -142,7 +163,7 @@ import {
     gap: 3px;
   }
 
-  .client-sidebar__link.router-link-active::before {
+  .client-sidebar__link--active::before {
     top: 0;
     right: 18px;
     bottom: auto;
