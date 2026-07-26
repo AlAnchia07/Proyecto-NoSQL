@@ -1,107 +1,79 @@
 <script setup>
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { ArrowLeft, Heart, Minus, Plus, ShoppingBag } from "lucide-vue-next";
+import { useCartStore } from "../../../stores/cartStore";
+
+import {
+  ArrowLeft,
+  Heart,
+  Minus,
+  Plus,
+  ShoppingBag
+} from "lucide-vue-next";
+
+import {
+  getRestaurantePorId
+} from "../../../services/restauranteService";
+
+import {
+  getProductosPorRestaurante
+} from "../../../services/productoService";
 
 const route = useRoute();
 const router = useRouter();
 
-const restaurants = [
-  {
-    id: "1",
-    name: "Panadería La Espiga",
-    category: "Panadería",
-    distance: "300 m",
-    rating: 4.8,
-    reviews: 120,
-    status: "Abierto",
-    image:
-      "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=1200&q=80",
-    products: [
-      {
-        id: "p1",
-        name: "Paquete de repostería",
-        description: "Selección variada de productos de repostería.",
-        price: 2500,
-        stock: 3,
-        image:
-          "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=600&q=80"
-      },
-      {
-        id: "p2",
-        name: "Pan dulce surtido",
-        description: "Pan dulce fresco preparado durante el día.",
-        price: 1600,
-        stock: 2,
-        image:
-          "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=600&q=80"
-      },
-      {
-        id: "p3",
-        name: "Galletas caseras",
-        description: "Paquete de galletas artesanales.",
-        price: 1000,
-        stock: 5,
-        image:
-          "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?auto=format&fit=crop&w=600&q=80"
-      },
-      {
-        id: "p4",
-        name: "Pastel de chocolate",
-        description: "Porción de pastel de chocolate.",
-        price: 2400,
-        stock: 1,
-        image:
-          "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=600&q=80"
-      }
-    ]
+const cartStore = useCartStore();
+
+const restaurant = ref(null);
+const products = ref([]);
+const cart = computed(() => cartStore.productos);
+
+const loading = ref(true);
+const error = ref("");
+
+const cargarDetalle = async () => {
+  try {
+    loading.value = true;
+    error.value = "";
+
+    const idRestaurante = route.params.id;
+
+    const [respuestaRestaurante, respuestaProductos] =
+      await Promise.all([
+        getRestaurantePorId(idRestaurante),
+        getProductosPorRestaurante(idRestaurante, false)
+      ]);
+
+    restaurant.value = respuestaRestaurante;
+    cartStore.seleccionarRestaurante(restaurant.value);
+    products.value = respuestaProductos;
+
+    if (!Array.isArray(products.value)) {
+      products.value = [];
+    }
+  } catch (err) {
+    console.error("Error cargando el detalle:", err);
+    error.value =
+      "No se pudo cargar la información del restaurante.";
+  } finally {
+    loading.value = false;
   }
-];
-
-const restaurant = computed(() =>
-  restaurants.find((item) => item.id === route.params.id) ?? restaurants[0]
-);
-
-const cart = ref([]);
+};
 
 const addProduct = (product) => {
-  const existingProduct = cart.value.find((item) => item.id === product.id);
-
-  if (existingProduct) {
-    if (existingProduct.quantity < product.stock) {
-      existingProduct.quantity++;
-    }
-
-    return;
-  }
-
-  cart.value.push({
-    ...product,
-    quantity: 1
-  });
+  cartStore.agregarProducto(product);
 };
 
 const increaseQuantity = (product) => {
-  if (product.quantity < product.stock) {
-    product.quantity++;
-  }
+  cartStore.aumentarCantidad(product);
 };
 
 const decreaseQuantity = (product) => {
-  if (product.quantity > 1) {
-    product.quantity--;
-    return;
-  }
-
-  cart.value = cart.value.filter((item) => item.id !== product.id);
+  cartStore.disminuirCantidad(product);
 };
 
-const subtotal = computed(() =>
-  cart.value.reduce(
-    (total, product) => total + product.price * product.quantity,
-    0
-  )
-);
+const subtotal = computed(() => cartStore.subtotal);
+
 
 const formatCurrency = (amount) =>
   new Intl.NumberFormat("es-CR", {
@@ -115,152 +87,184 @@ const confirmOrder = () => {
     return;
   }
 
-  router.push("/cliente/mis-pedidos");
+  router.push("/cliente/checkout");
 };
+
+onMounted(cargarDetalle);
 </script>
 
 <template>
   <section class="restaurant-detail">
-    <button class="back-button" type="button" @click="router.back()">
-      <ArrowLeft />
-      Volver
-    </button>
+    
+    <p v-if="loading" class="status-message">
+      Cargando restaurante...
+    </p>
 
-    <div class="restaurant-detail__layout">
-      <div class="restaurant-detail__main">
-        <header class="restaurant-header">
-          <img
-            :src="restaurant.image"
-            :alt="restaurant.name"
-            class="restaurant-header__image"
-          />
+    <p
+      v-else-if="error"
+      class="status-message status-message--error"
+    >
+      {{ error }}
+    </p>
 
-          <div class="restaurant-header__overlay">
-            <div>
-              <p class="restaurant-header__category">
-                {{ restaurant.category }}
-              </p>
+    <div v-else-if="restaurant">
 
-              <h1>{{ restaurant.name }}</h1>
+      <button class="back-button" type="button" @click="router.back()">
+        <ArrowLeft />
+        Volver
+      </button>
 
-              <div class="restaurant-header__meta">
-                <span>★ {{ restaurant.rating }} ({{ restaurant.reviews }})</span>
-                <span>{{ restaurant.distance }}</span>
-                <span class="restaurant-header__status">
-                  {{ restaurant.status }}
-                </span>
+      <div class="restaurant-detail__layout">
+        <div class="restaurant-detail__main">
+          <header class="restaurant-header">
+            <img
+              :src="
+                restaurant.url_imagen ||
+                'https://placehold.co/1200x500?text=BiteUp'
+              "
+              :alt="restaurant.nombre"
+              class="restaurant-header__image"
+            />
+
+            <div class="restaurant-header__overlay">
+              <div>
+                <p class="restaurant-header__category">
+                  {{ restaurant.id_categoria?.nombre || "Restaurante" }}
+                </p>
+
+                <h1>{{ restaurant.nombre }}</h1>
+
+                <div class="restaurant-header__meta">
+                  <span>{{ restaurant.direccion }}</span>
+
+                  <span class="restaurant-header__status">
+                    {{ restaurant.estado }}
+                  </span>
+                </div>
+              </div>
+
+              <button class="favorite-button" type="button">
+                <Heart />
+                Favorito
+              </button>
+            </div>
+          </header>
+
+          <section class="products-section">
+            <div class="products-section__heading">
+              <div>
+                <h2>Productos disponibles</h2>
+                <p>Selecciona los productos que deseas agregar al pedido.</p>
               </div>
             </div>
 
-            <button class="favorite-button" type="button">
-              <Heart />
-              Favorito
-            </button>
-          </div>
-        </header>
+            <div class="product-grid">
+              <article
+                v-for="product in products"
+                :key="product._id"
+                class="product-card"
+              >
+                <img
+                  :src="
+                    product.url_imagen ||
+                    'https://placehold.co/600x400?text=Producto'
+                  "
+                  :alt="product.nombre"
+                />
 
-        <section class="products-section">
-          <div class="products-section__heading">
-            <div>
-              <h2>Productos disponibles</h2>
-              <p>Selecciona los productos que deseas agregar al pedido.</p>
-            </div>
-          </div>
+                <div class="product-card__content">
+                  <h3>{{ product.nombre }}</h3>
+                  <p>{{ product.descripcion }}</p>
 
-          <div class="product-grid">
-            <article
-              v-for="product in restaurant.products"
-              :key="product.id"
-              class="product-card"
-            >
-              <img :src="product.image" :alt="product.name" />
+                  <div class="product-card__details">
+                    <strong>{{ formatCurrency(product.precio_descuento) }}</strong>
+                    <span>Quedan {{ product.cantidad_disponible }}</span>
+                  </div>
 
-              <div class="product-card__content">
-                <h3>{{ product.name }}</h3>
-                <p>{{ product.description }}</p>
-
-                <div class="product-card__details">
-                  <strong>{{ formatCurrency(product.price) }}</strong>
-                  <span>Quedan {{ product.stock }}</span>
+                  <button type="button" @click="addProduct(product)">
+                    Agregar
+                  </button>
                 </div>
+              </article>
+            </div>
+          </section>
+        </div>
 
-                <button type="button" @click="addProduct(product)">
-                  Agregar
+        <aside class="cart">
+          <div class="cart__heading">
+            <div>
+              <p>Tu selección</p>
+              <h2>Mi pedido</h2>
+            </div>
+
+            <ShoppingBag />
+          </div>
+
+          <div v-if="cart.length === 0" class="cart__empty">
+            <ShoppingBag />
+            <p>Aún no has agregado productos.</p>
+          </div>
+
+          <div v-else class="cart__items">
+            <article
+              v-for="product in cart"
+              :key="product._id"
+              class="cart-item"
+            >
+              <img
+                :src="
+                  product.url_imagen ||
+                  'https://placehold.co/200x200?text=Producto'
+                "
+                :alt="product.nombre"
+              />
+
+              <div class="cart-item__info">
+                <h3>{{ product.nombre }}</h3>
+                <span>{{ formatCurrency(product.precio_descuento) }}</span>
+              </div>
+
+              <div class="quantity-control">
+                <button type="button" @click="decreaseQuantity(product)">
+                  <Minus />
+                </button>
+
+                <span>{{ product.quantity }}</span>
+
+                <button type="button" @click="increaseQuantity(product)">
+                  <Plus />
                 </button>
               </div>
             </article>
           </div>
-        </section>
-      </div>
 
-      <aside class="cart">
-        <div class="cart__heading">
-          <div>
-            <p>Tu selección</p>
-            <h2>Mi pedido</h2>
+          <div class="cart__summary">
+            <div>
+              <span>Subtotal</span>
+              <strong>{{ formatCurrency(subtotal) }}</strong>
+            </div>
+
+            <div>
+              <span>Entrega</span>
+              <strong>Retiro en el local</strong>
+            </div>
+
+            <div class="cart__total">
+              <span>Total</span>
+              <strong>{{ formatCurrency(subtotal) }}</strong>
+            </div>
           </div>
 
-          <ShoppingBag />
-        </div>
-
-        <div v-if="cart.length === 0" class="cart__empty">
-          <ShoppingBag />
-          <p>Aún no has agregado productos.</p>
-        </div>
-
-        <div v-else class="cart__items">
-          <article
-            v-for="product in cart"
-            :key="product.id"
-            class="cart-item"
+          <button
+            class="confirm-button"
+            type="button"
+            :disabled="cart.length === 0"
+            @click="confirmOrder"
           >
-            <img :src="product.image" :alt="product.name" />
-
-            <div class="cart-item__info">
-              <h3>{{ product.name }}</h3>
-              <span>{{ formatCurrency(product.price) }}</span>
-            </div>
-
-            <div class="quantity-control">
-              <button type="button" @click="decreaseQuantity(product)">
-                <Minus />
-              </button>
-
-              <span>{{ product.quantity }}</span>
-
-              <button type="button" @click="increaseQuantity(product)">
-                <Plus />
-              </button>
-            </div>
-          </article>
-        </div>
-
-        <div class="cart__summary">
-          <div>
-            <span>Subtotal</span>
-            <strong>{{ formatCurrency(subtotal) }}</strong>
-          </div>
-
-          <div>
-            <span>Entrega</span>
-            <strong>Retiro en el local</strong>
-          </div>
-
-          <div class="cart__total">
-            <span>Total</span>
-            <strong>{{ formatCurrency(subtotal) }}</strong>
-          </div>
-        </div>
-
-        <button
-          class="confirm-button"
-          type="button"
-          :disabled="cart.length === 0"
-          @click="confirmOrder"
-        >
-          Confirmar pedido
-        </button>
-      </aside>
+            Proceder al pago
+          </button>
+        </aside>
+      </div>
     </div>
   </section>
 </template>

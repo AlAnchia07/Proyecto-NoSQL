@@ -11,11 +11,17 @@
       Cargando pedidos...
     </div>
 
-    <div v-else-if="error" class="orders-view__message orders-view__message--error">
+    <div
+      v-else-if="error"
+      class="orders-view__message orders-view__message--error"
+    >
       {{ error }}
     </div>
 
-    <div v-else-if="pedidos.length === 0" class="orders-view__message">
+    <div
+      v-else-if="pedidos.length === 0"
+      class="orders-view__message"
+    >
       Todavía no tienes pedidos registrados.
     </div>
 
@@ -51,8 +57,23 @@
           </div>
 
           <div>
+            <span>Método de pago</span>
+            <strong>{{ formatearMetodoPago(pedido.metodo_pago) }}</strong>
+          </div>
+
+          <div>
+            <span>Subtotal</span>
+            <strong>{{ formatearMoneda(pedido.subtotal) }}</strong>
+          </div>
+
+          <div>
+            <span>Costo de entrega</span>
+            <strong>{{ formatearMoneda(pedido.costo_entrega) }}</strong>
+          </div>
+
+          <div>
             <span>Total</span>
-            <strong>₡{{ formatearMonto(pedido.total) }}</strong>
+            <strong>{{ formatearMoneda(pedido.total) }}</strong>
           </div>
         </div>
 
@@ -69,7 +90,7 @@
             </span>
 
             <strong>
-              ₡{{ formatearMonto(producto.subtotal) }}
+              {{ formatearMoneda(producto.subtotal) }}
             </strong>
           </div>
         </div>
@@ -86,27 +107,48 @@ const pedidos = ref([]);
 const loading = ref(true);
 const error = ref("");
 
-const idClienteTemporal = "6884a7d8e2d31d8c9b6a0001";
-
 async function cargarPedidos() {
   try {
     loading.value = true;
     error.value = "";
 
-    pedidos.value = await getPedidosCliente(idClienteTemporal);
+    const idClienteTemporal = localStorage.getItem(
+      "id_cliente_temporal"
+    );
+
+    if (!idClienteTemporal) {
+      throw new Error(
+        "No se encontró el cliente temporal."
+      );
+    }
+
+    pedidos.value = await getPedidosCliente(
+      idClienteTemporal
+    );
   } catch (err) {
-    console.error(err);
-    error.value = "No fue posible cargar los pedidos.";
+    console.error("Error al cargar los pedidos:", err);
+
+    error.value =
+      err.message ||
+      "No fue posible cargar los pedidos.";
   } finally {
     loading.value = false;
   }
 }
 
-function formatearMonto(monto) {
-  return Number(monto || 0).toLocaleString("es-CR");
+function formatearMoneda(monto) {
+  return new Intl.NumberFormat("es-CR", {
+    style: "currency",
+    currency: "CRC",
+    maximumFractionDigits: 0
+  }).format(Number(monto) || 0);
 }
 
 function formatearFecha(fecha) {
+  if (!fecha) {
+    return "Fecha no disponible";
+  }
+
   return new Date(fecha).toLocaleString("es-CR", {
     dateStyle: "medium",
     timeStyle: "short"
@@ -128,13 +170,27 @@ function formatearEstado(estado) {
 function formatearEntrega(tipoEntrega) {
   const tipos = {
     RETIRO_EN_LOCAL: "Retiro en el local",
-    ENTREGA_A_DOMICILIO: "Entrega a domicilio"
+    EXPRESS: "Entrega express"
   };
 
   return tipos[tipoEntrega] || tipoEntrega;
 }
 
+function formatearMetodoPago(metodoPago) {
+  const metodos = {
+    TARJETA: "Tarjeta",
+    SINPE: "SINPE",
+    EFECTIVO: "Efectivo"
+  };
+
+  return metodos[metodoPago] || metodoPago;
+}
+
 function getEstadoClase(estado) {
+  if (!estado) {
+    return "";
+  }
+
   return `order-card__status--${estado.toLowerCase()}`;
 }
 

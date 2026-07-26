@@ -6,6 +6,7 @@ import RestaurantLayout from "../layouts/RestaurantLayout.vue";
 import HomeView from "../views/client/home/HomeView.vue";
 import MyOrdersView from "../views/client/orders/MyOrdersView.vue";
 import RestaurantDetailView from "../views/client/restaurants/RestaurantDetailView.vue";
+import CheckoutView from "../views/client/checkout/CheckoutView.vue";
 
 import RestaurantOrdersView from "../views/restaurant/RestaurantOrdersView.vue";
 import NotificacionesView from "../views/NotificacionesView.vue";
@@ -34,6 +35,11 @@ const router = createRouter({
           path: "restaurante/:id",
           name: "client-restaurant-detail",
           component: RestaurantDetailView
+        },
+        {
+          path: "checkout",
+          name: "client-checkout",
+          component: CheckoutView
         },
         {
           path: "mis-pedidos",
