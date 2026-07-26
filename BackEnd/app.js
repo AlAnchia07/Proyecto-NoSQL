@@ -17,10 +17,12 @@ app.use(express.json());
 
 const reseñaRoutes = require('./src/routes/ReseñaRoutes');
 const notificacionRoutes = require('./src/routes/NotificacionRoutes');
+const categoriaRoutes = require("./src/routes/categoriaRoutes");
 
 
 app.use('/api', reseñaRoutes);
 app.use('/api', notificacionRoutes);
+app.use('/api/categorias', categoriaRoutes);
 
 
 console.log("ReseñaRoutes cargado");
