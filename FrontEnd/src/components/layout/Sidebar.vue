@@ -11,6 +11,13 @@
 
     <nav class="sidebar__nav">
       <RouterLink
+        to="/restaurante/restaurantes"
+        class="sidebar__link"
+      >
+        <Store :size="20" :stroke-width="1.8" />
+        <span>Restaurantes</span>
+      </RouterLink>
+      <RouterLink
         to="/restaurante/productos"
         class="sidebar__link"
       >
@@ -56,6 +63,7 @@ import {
   LogOut,
   Package,
   Star,
+  Store,
   UserRound
 } from "lucide-vue-next";
 </script>

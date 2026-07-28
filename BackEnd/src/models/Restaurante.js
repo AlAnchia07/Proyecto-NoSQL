@@ -24,7 +24,6 @@ const restauranteSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Usuario",
       required: [true, "El usuario es obligatorio."],
-      unique: true
     },
 
     id_categoria: {

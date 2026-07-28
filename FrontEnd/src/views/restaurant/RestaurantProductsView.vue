@@ -3,12 +3,21 @@
     <div class="products-view__heading">
       <div>
         <h1>Productos</h1>
-        <p>
-          Administra los productos disponibles en tu restaurante.
+
+        <p v-if="restauranteStore.hayRestauranteActivo">
+          Administra los productos de
+          <strong>
+            {{ restauranteStore.restauranteActivo.nombre }}
+          </strong>.
+        </p>
+
+        <p v-else>
+          Selecciona un restaurante para administrar sus productos.
         </p>
       </div>
 
       <button
+        v-if="restauranteStore.hayRestauranteActivo"
         class="primary-button"
         type="button"
         @click="abrirFormularioCrear"
@@ -18,153 +27,193 @@
       </button>
     </div>
 
-    <div class="products-toolbar">
-      <div class="search-box">
-        <Search :size="19" />
+    <!-- Estado vacío cuando no hay restaurante seleccionado -->
+    <div
+      v-if="!restauranteStore.hayRestauranteActivo"
+      class="products-empty-state"
+    >
+      <Store :size="48" />
 
-        <input
-          v-model.trim="busqueda"
-          type="search"
-          placeholder="Buscar por nombre o categoría..."
-        />
+      <h2>No hay un restaurante seleccionado</h2>
+
+      <p>
+        Crea o selecciona un restaurante antes de administrar
+        sus productos.
+      </p>
+
+      <RouterLink
+        class="primary-button"
+        to="/restaurante/restaurantes"
+      >
+        Ir a Restaurantes
+      </RouterLink>
+    </div>
+
+    <!-- Contenido normal de productos -->
+    <template v-else>
+      <div class="products-toolbar">
+        <div class="search-box">
+          <Search :size="19" />
+
+          <input
+            v-model.trim="busqueda"
+            type="search"
+            placeholder="Buscar por nombre o categoría..."
+          />
+        </div>
+
+        <select v-model="filtroEstado">
+          <option value="TODOS">Todos los estados</option>
+          <option value="ACTIVO">Activos</option>
+          <option value="AGOTADO">Agotados</option>
+          <option value="INACTIVO">Inactivos</option>
+        </select>
+
+        <button
+          class="secondary-button"
+          type="button"
+          :disabled="loading"
+          @click="cargarProductos"
+        >
+          <RefreshCw :size="18" />
+
+          {{ loading ? "Actualizando..." : "Actualizar" }}
+        </button>
       </div>
 
-      <select v-model="filtroEstado">
-        <option value="TODOS">Todos los estados</option>
-        <option value="ACTIVO">Activos</option>
-        <option value="AGOTADO">Agotados</option>
-        <option value="INACTIVO">Inactivos</option>
-      </select>
-
-      <button
-        class="secondary-button"
-        type="button"
-        :disabled="loading"
-        @click="cargarProductos"
+      <div
+        v-if="mensajeExito"
+        class="alert alert--success"
       >
-        <RefreshCw :size="18" />
-        {{ loading ? "Actualizando..." : "Actualizar" }}
-      </button>
-    </div>
+        {{ mensajeExito }}
+      </div>
 
-    <div
-      v-if="mensajeExito"
-      class="alert alert--success"
-    >
-      {{ mensajeExito }}
-    </div>
-
-    <div
-      v-if="error"
-      class="alert alert--error"
-    >
-      {{ error }}
-    </div>
-
-    <div v-if="loading" class="products-message">
-      Cargando productos...
-    </div>
-
-    <div
-      v-else-if="productosFiltrados.length === 0"
-      class="products-message"
-    >
-      No se encontraron productos.
-    </div>
-
-    <div v-else class="products-grid">
-      <article
-        v-for="producto in productosFiltrados"
-        :key="producto._id"
-        class="product-card"
+      <div
+        v-if="error"
+        class="alert alert--error"
       >
-        <div class="product-card__image">
-          <img
-            v-if="producto.url_imagen"
-            :src="producto.url_imagen"
-            :alt="producto.nombre"
-            @error="ocultarImagen"
-          />
+        {{ error }}
+      </div>
 
-          <div v-else class="product-card__placeholder">
-            <ImageIcon :size="34" />
-          </div>
+      <div v-if="loading" class="products-message">
+        Cargando productos...
+      </div>
 
-          <span
-            class="product-card__status"
-            :class="getEstadoClase(producto.estado)"
-          >
-            {{ formatearEstado(producto.estado) }}
-          </span>
-        </div>
+      <div
+        v-else-if="productosFiltrados.length === 0"
+        class="products-message"
+      >
+        No se encontraron productos para este restaurante.
+      </div>
 
-        <div class="product-card__body">
-          <span class="product-card__category">
-            {{ producto.id_categoria?.nombre || "Sin categoría" }}
-          </span>
+      <div v-else class="products-grid">
+        <article
+          v-for="producto in productosFiltrados"
+          :key="producto._id"
+          class="product-card"
+        >
+          <div class="product-card__image">
+            <img
+              v-if="producto.url_imagen"
+              :src="producto.url_imagen"
+              :alt="producto.nombre"
+              @error="ocultarImagen"
+            />
 
-          <h2>{{ producto.nombre }}</h2>
-
-          <p class="product-card__description">
-            {{ producto.descripcion }}
-          </p>
-
-          <div class="product-card__prices">
-            <span class="product-card__original-price">
-              ₡{{ formatearMonto(producto.precio_original) }}
-            </span>
-
-            <strong>
-              ₡{{ formatearMonto(producto.precio_descuento) }}
-            </strong>
-          </div>
-
-          <div class="product-card__details">
-            <span>
-              Cantidad:
-              <strong>{{ producto.cantidad_disponible }}</strong>
-            </span>
-
-            <span>
-              Vence:
-              <strong>
-                {{ formatearFecha(producto.fecha_vencimiento) }}
-              </strong>
-            </span>
-          </div>
-
-          <div class="product-card__actions">
-            <button
-              type="button"
-              class="edit-button"
-              :disabled="producto.estado === 'INACTIVO'"
-              @click="abrirFormularioEditar(producto)"
+            <div
+              v-else
+              class="product-card__placeholder"
             >
-              <Pencil :size="17" />
-              Editar
-            </button>
+              <ImageIcon :size="34" />
+            </div>
 
-            <button
-              type="button"
-              class="delete-button"
-              :disabled="
-                producto.estado === 'INACTIVO' ||
-                producto.desactivando
-              "
-              @click="confirmarDesactivacion(producto)"
+            <span
+              class="product-card__status"
+              :class="getEstadoClase(producto.estado)"
             >
-              <Trash2 :size="17" />
+              {{ formatearEstado(producto.estado) }}
+            </span>
+          </div>
+
+          <div class="product-card__body">
+            <span class="product-card__category">
               {{
-                producto.desactivando
-                  ? "Desactivando..."
-                  : "Desactivar"
+                producto.id_categoria?.nombre ||
+                "Sin categoría"
               }}
-            </button>
-          </div>
-        </div>
-      </article>
-    </div>
+            </span>
 
+            <h2>{{ producto.nombre }}</h2>
+
+            <p class="product-card__description">
+              {{ producto.descripcion }}
+            </p>
+
+            <div class="product-card__prices">
+              <span class="product-card__original-price">
+                ₡{{ formatearMonto(producto.precio_original) }}
+              </span>
+
+              <strong>
+                ₡{{ formatearMonto(producto.precio_descuento) }}
+              </strong>
+            </div>
+
+            <div class="product-card__details">
+              <span>
+                Cantidad:
+                <strong>
+                  {{ producto.cantidad_disponible }}
+                </strong>
+              </span>
+
+              <span>
+                Vence:
+                <strong>
+                  {{
+                    formatearFecha(
+                      producto.fecha_vencimiento
+                    )
+                  }}
+                </strong>
+              </span>
+            </div>
+
+            <div class="product-card__actions">
+              <button
+                type="button"
+                class="edit-button"
+                :disabled="producto.estado === 'INACTIVO'"
+                @click="abrirFormularioEditar(producto)"
+              >
+                <Pencil :size="17" />
+                Editar
+              </button>
+
+              <button
+                type="button"
+                class="delete-button"
+                :disabled="
+                  producto.estado === 'INACTIVO' ||
+                  producto.desactivando
+                "
+                @click="confirmarDesactivacion(producto)"
+              >
+                <Trash2 :size="17" />
+
+                {{
+                  producto.desactivando
+                    ? "Desactivando..."
+                    : "Desactivar"
+                }}
+              </button>
+            </div>
+          </div>
+        </article>
+      </div>
+    </template>
+
+    <!-- Modal para crear o editar -->
     <div
       v-if="mostrarFormulario"
       class="modal-backdrop"
@@ -253,7 +302,9 @@
 
             <input
               id="cantidad"
-              v-model.number="formulario.cantidad_disponible"
+              v-model.number="
+                formulario.cantidad_disponible
+              "
               type="number"
               min="0"
               step="1"
@@ -335,7 +386,9 @@
             {{ errorFormulario }}
           </div>
 
-          <div class="product-form__actions form-field--full">
+          <div
+            class="product-form__actions form-field--full"
+          >
             <button
               type="button"
               class="secondary-button"
@@ -366,18 +419,28 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from "vue";
+import {
+  computed,
+  onMounted,
+  reactive,
+  ref
+} from "vue";
+
 import {
   Image as ImageIcon,
   Pencil,
   Plus,
   RefreshCw,
   Search,
+  Store,
   Trash2,
   X
 } from "lucide-vue-next";
 
+import { useRestauranteStore } from "../../stores/RestauranteStore";
+
 import { getCategoriasPorTipo } from "../../services/categoriaService";
+
 import {
   crearProducto,
   desactivarProducto,
@@ -385,23 +448,23 @@ import {
   getProductosPorRestaurante
 } from "../../services/productoService";
 
+const restauranteStore = useRestauranteStore();
+
 const productos = ref([]);
 const categorias = ref([]);
-const loading = ref(true);
+
+const loading = ref(false);
 const guardando = ref(false);
+
 const error = ref("");
 const errorFormulario = ref("");
 const mensajeExito = ref("");
+
 const busqueda = ref("");
 const filtroEstado = ref("TODOS");
+
 const mostrarFormulario = ref(false);
 const productoEditando = ref(null);
-
-/*
- * Reemplaza este valor por el _id real del restaurante
- * que creaste en MongoDB.
- */
-const idRestauranteTemporal = "6a666c9eaa03eadb7870e707";
 
 const formularioInicial = () => ({
   nombre: "",
@@ -425,11 +488,14 @@ const productosFiltrados = computed(() => {
       filtroEstado.value === "TODOS" ||
       producto.estado === filtroEstado.value;
 
+    const nombreProducto =
+      producto.nombre?.toLowerCase() || "";
+
     const nombreCategoria =
       producto.id_categoria?.nombre?.toLowerCase() || "";
 
     const coincideBusqueda =
-      producto.nombre.toLowerCase().includes(termino) ||
+      nombreProducto.includes(termino) ||
       nombreCategoria.includes(termino);
 
     return coincideEstado && coincideBusqueda;
@@ -437,6 +503,19 @@ const productosFiltrados = computed(() => {
 });
 
 async function cargarDatos() {
+  /*
+   * Esto permite recuperar el restaurante seleccionado
+   * aunque se recargue directamente esta página.
+   */
+  restauranteStore.cargarRestauranteGuardado();
+
+  if (!restauranteStore.hayRestauranteActivo) {
+    productos.value = [];
+    categorias.value = [];
+    loading.value = false;
+    return;
+  }
+
   await Promise.all([
     cargarProductos(),
     cargarCategorias()
@@ -444,28 +523,32 @@ async function cargarDatos() {
 }
 
 async function cargarProductos() {
+  if (!restauranteStore.idRestauranteActivo) {
+    productos.value = [];
+    return;
+  }
+
   try {
     loading.value = true;
     error.value = "";
 
-    productos.value =
+    const respuesta =
       await getProductosPorRestaurante(
-        idRestauranteTemporal,
+        restauranteStore.idRestauranteActivo,
         true
       );
 
-    productos.value = productos.value.map((producto) => ({
+    productos.value = respuesta.map((producto) => ({
       ...producto,
       desactivando: false
     }));
   } catch (err) {
     console.error(err);
 
-    error.value =
-      obtenerMensajeError(
-        err,
-        "No fue posible cargar los productos."
-      );
+    error.value = obtenerMensajeError(
+      err,
+      "No fue posible cargar los productos."
+    );
   } finally {
     loading.value = false;
   }
@@ -478,23 +561,34 @@ async function cargarCategorias() {
   } catch (err) {
     console.error(err);
 
-    error.value =
-      obtenerMensajeError(
-        err,
-        "No fue posible cargar las categorías."
-      );
+    error.value = obtenerMensajeError(
+      err,
+      "No fue posible cargar las categorías."
+    );
   }
 }
 
 function abrirFormularioCrear() {
+  if (!restauranteStore.idRestauranteActivo) {
+    error.value =
+      "Debes seleccionar un restaurante antes de crear productos.";
+
+    return;
+  }
+
   productoEditando.value = null;
-  Object.assign(formulario, formularioInicial());
+
+  Object.assign(
+    formulario,
+    formularioInicial()
+  );
 
   formulario.fecha_disponibilidad =
     convertirFechaParaInput(new Date());
 
   mostrarFormulario.value = true;
   errorFormulario.value = "";
+  mensajeExito.value = "";
 }
 
 function abrirFormularioEditar(producto) {
@@ -503,18 +597,28 @@ function abrirFormularioEditar(producto) {
   Object.assign(formulario, {
     nombre: producto.nombre,
     descripcion: producto.descripcion,
+
     id_categoria:
       producto.id_categoria?._id ||
       producto.id_categoria,
-    precio_original: producto.precio_original,
-    precio_descuento: producto.precio_descuento,
+
+    precio_original:
+      producto.precio_original,
+
+    precio_descuento:
+      producto.precio_descuento,
+
     cantidad_disponible:
       producto.cantidad_disponible,
-    url_imagen: producto.url_imagen || "",
+
+    url_imagen:
+      producto.url_imagen || "",
+
     fecha_disponibilidad:
       convertirFechaParaInput(
         producto.fecha_disponibilidad
       ),
+
     fecha_vencimiento:
       convertirFechaParaInput(
         producto.fecha_vencimiento
@@ -523,6 +627,7 @@ function abrirFormularioEditar(producto) {
 
   mostrarFormulario.value = true;
   errorFormulario.value = "";
+  mensajeExito.value = "";
 }
 
 function cerrarFormulario() {
@@ -541,28 +646,45 @@ async function guardarProducto() {
     errorFormulario.value = "";
     mensajeExito.value = "";
 
+    if (!restauranteStore.idRestauranteActivo) {
+      throw new Error(
+        "Debes seleccionar un restaurante antes de guardar el producto."
+      );
+    }
+
     validarFormulario();
 
     const datosProducto = {
-      id_categoria: formulario.id_categoria,
-      nombre: formulario.nombre,
-      descripcion: formulario.descripcion,
-      precio_original: Number(
-        formulario.precio_original
-      ),
-      precio_descuento: Number(
-        formulario.precio_descuento
-      ),
-      cantidad_disponible: Number(
-        formulario.cantidad_disponible
-      ),
-      url_imagen: formulario.url_imagen,
-      fecha_disponibilidad: new Date(
-        formulario.fecha_disponibilidad
-      ).toISOString(),
-      fecha_vencimiento: new Date(
-        formulario.fecha_vencimiento
-      ).toISOString()
+      id_categoria:
+        formulario.id_categoria,
+
+      nombre:
+        formulario.nombre,
+
+      descripcion:
+        formulario.descripcion,
+
+      precio_original:
+        Number(formulario.precio_original),
+
+      precio_descuento:
+        Number(formulario.precio_descuento),
+
+      cantidad_disponible:
+        Number(formulario.cantidad_disponible),
+
+      url_imagen:
+        formulario.url_imagen,
+
+      fecha_disponibilidad:
+        new Date(
+          formulario.fecha_disponibilidad
+        ).toISOString(),
+
+      fecha_vencimiento:
+        new Date(
+          formulario.fecha_vencimiento
+        ).toISOString()
     };
 
     if (productoEditando.value) {
@@ -576,7 +698,9 @@ async function guardarProducto() {
     } else {
       await crearProducto({
         ...datosProducto,
-        id_restaurante: idRestauranteTemporal
+
+        id_restaurante:
+          restauranteStore.idRestauranteActivo
       });
 
       mensajeExito.value =
@@ -621,11 +745,10 @@ async function confirmarDesactivacion(producto) {
   } catch (err) {
     console.error(err);
 
-    error.value =
-      obtenerMensajeError(
-        err,
-        "No fue posible desactivar el producto."
-      );
+    error.value = obtenerMensajeError(
+      err,
+      "No fue posible desactivar el producto."
+    );
   } finally {
     producto.desactivando = false;
   }
@@ -651,7 +774,10 @@ function validarFormulario() {
   }
 }
 
-function obtenerMensajeError(err, mensajePredeterminado) {
+function obtenerMensajeError(
+  err,
+  mensajePredeterminado
+) {
   return (
     err.response?.data?.mensaje ||
     err.message ||
@@ -668,11 +794,14 @@ function formatearFecha(fecha) {
     return "Sin fecha";
   }
 
-  return new Date(fecha).toLocaleDateString("es-CR", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric"
-  });
+  return new Date(fecha).toLocaleDateString(
+    "es-CR",
+    {
+      day: "2-digit",
+      month: "short",
+      year: "numeric"
+    }
+  );
 }
 
 function formatearEstado(estado) {
@@ -686,6 +815,10 @@ function formatearEstado(estado) {
 }
 
 function getEstadoClase(estado) {
+  if (!estado) {
+    return "";
+  }
+
   return `product-card__status--${estado.toLowerCase()}`;
 }
 
@@ -695,6 +828,7 @@ function convertirFechaParaInput(fecha) {
   }
 
   const fechaLocal = new Date(fecha);
+
   const diferenciaZona =
     fechaLocal.getTimezoneOffset() * 60000;
 
@@ -1097,6 +1231,41 @@ onMounted(cargarDatos);
   justify-content: flex-end;
   gap: 11px;
   margin-top: 5px;
+}
+
+.products-empty-state {
+  display: flex;
+  min-height: 380px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 13px;
+  padding: 40px 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.products-empty-state h2 {
+  margin: 4px 0 0;
+  color: var(--text-main);
+  font-size: 21px;
+}
+
+.products-empty-state p {
+  max-width: 440px;
+  margin: 0 0 8px;
+  line-height: 1.5;
+}
+
+.products-empty-state svg {
+  color: var(--green-main);
+}
+
+.products-empty-state .primary-button {
+  text-decoration: none;
 }
 
 @media (max-width: 760px) {
