@@ -11,7 +11,9 @@ import CheckoutView from "../views/client/checkout/CheckoutView.vue";
 import RestaurantOrdersView from "../views/restaurant/RestaurantOrdersView.vue";
 import NotificacionesView from "../views/NotificacionesView.vue";
 import RestaurantProductsView from "../views/restaurant/RestaurantProductsView.vue";
-import RestaurantProfileView from "../views/restaurant/RestaurantProfileView.vue";
+import RestaurantEditView from "../views/restaurant/RestaurantEditView.vue";
+import RestaurantListView from "../views/restaurant/RestaurantListView.vue";
+import AdminProfileView from "../views/restaurant/AdminProfileView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -55,31 +57,32 @@ const router = createRouter({
       children: [
         {
           path: "",
-          redirect: "/restaurante/pedidos"
+          redirect: "/restaurante/restaurantes"
         },
         {
-          path: "pedidos",
-          name: "restaurant-orders",
-          component: RestaurantOrdersView,
-          meta: {
-            title: "Pedidos"
-          }
+          path: "restaurantes",
+          name: "restaurant-list",
+          component: RestaurantListView
+        },
+        {
+          path: "restaurantes/:id/editar",
+          name: "restaurant-edit",
+          component: RestaurantEditView
         },
         {
           path: "productos",
           name: "restaurant-products",
-          component: RestaurantProductsView,
-          meta: {
-            title: "Productos"
-          }
+          component: RestaurantProductsView
+        },
+        {
+          path: "pedidos",
+          name: "restaurant-orders",
+          component: RestaurantOrdersView
         },
         {
           path: "perfil",
-          name: "restaurant-profile",
-          component: RestaurantProfileView,
-          meta: {
-            title: "Perfil del restaurante"
-          }
+          name: "admin-profile",
+          component: AdminProfileView
         }
       ]
     },

@@ -50,16 +50,16 @@ const obtenerRestaurantePorId = async (req, res) => {
 };
 
 // Consultar restaurante por usuario
-const obtenerRestaurantePorUsuario = async (req, res) => {
+const obtenerRestaurantesPorUsuario = async (req, res) => {
   try {
-    const restaurante =
-      await restauranteService.obtenerRestaurantePorUsuario(
+    const restaurantes =
+      await restauranteService.obtenerRestaurantesPorUsuario(
         req.params.idUsuario
       );
 
-    res.json(restaurante);
+    res.json(restaurantes);
   } catch (error) {
-    res.status(404).json({
+    res.status(400).json({
       mensaje: error.message
     });
   }
@@ -89,6 +89,6 @@ module.exports = {
   crearRestaurante,
   obtenerRestaurantes,
   obtenerRestaurantePorId,
-  obtenerRestaurantePorUsuario,
+  obtenerRestaurantesPorUsuario,
   editarRestaurante
 };

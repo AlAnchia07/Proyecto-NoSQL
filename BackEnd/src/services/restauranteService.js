@@ -68,16 +68,6 @@ const crearRestaurante = async (datosRestaurante) => {
   await validarUsuarioRestaurante(id_usuario);
   await validarCategoriaRestaurante(id_categoria);
 
-  const restauranteExistente = await Restaurante.findOne({
-    id_usuario
-  });
-
-  if (restauranteExistente) {
-    throw new Error(
-      "Este usuario ya tiene un restaurante registrado."
-    );
-  }
-
   const nuevoRestaurante = new Restaurante({
     id_usuario,
     id_categoria,
@@ -120,22 +110,28 @@ const obtenerRestaurantePorId = async (idRestaurante) => {
 };
 
 // Consultar restaurante por usuario
-const obtenerRestaurantePorUsuario = async (idUsuario) => {
+const obtenerRestaurantesPorUsuario = async (idUsuario) => {
   validarObjectId(idUsuario, "El ID de usuario");
 
-  const restaurante = await Restaurante.findOne({
-    id_usuario: idUsuario
-  })
-    .populate("id_categoria", "nombre tipo estado")
-    .populate("id_usuario", "correo_registro tipo_usuario");
+  const usuario = await Usuario.findById(idUsuario);
 
-  if (!restaurante) {
+  if (!usuario) {
+    throw new Error("El usuario indicado no existe.");
+  }
+
+  if (usuario.tipo_usuario !== "RESTAURANTE") {
     throw new Error(
-      "No se encontró un restaurante asociado a este usuario."
+      "El usuario indicado no administra restaurantes."
     );
   }
 
-  return restaurante;
+  return await Restaurante.find({
+    id_usuario: idUsuario
+  })
+    .populate("id_categoria", "nombre tipo estado")
+    .sort({
+      createdAt: -1
+    });
 };
 
 // Editar restaurante
@@ -216,6 +212,6 @@ module.exports = {
   crearRestaurante,
   obtenerRestaurantes,
   obtenerRestaurantePorId,
-  obtenerRestaurantePorUsuario,
+  obtenerRestaurantesPorUsuario,
   editarRestaurante
 };
