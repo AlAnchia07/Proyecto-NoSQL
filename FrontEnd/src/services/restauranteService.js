@@ -89,6 +89,7 @@ export async function editarRestaurante(
   }
 }
 
+/*
 export async function getRestaurantes() {
   try {
     const response = await axios.get(RESTAURANTES_URL);
@@ -99,3 +100,4 @@ export async function getRestaurantes() {
     throw error;
   }
 }
+  */
