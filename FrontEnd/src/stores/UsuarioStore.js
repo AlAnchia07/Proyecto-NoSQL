@@ -19,8 +19,8 @@ export const useUsuarioStore = defineStore("usuario", {
 
     simularLoginAdministrador() {
       this.usuario = {
-        _id: "6a666c044971455c8b375501",
-        correo_registro: "restaurante.prueba@biteup.com",
+        _id: "66a000000000000000000001",
+        correo_registro: "admin.central@biteup.test",
         tipo_usuario: "RESTAURANTE"
       };
 
