@@ -1,4 +1,4 @@
-<!-- src/views/auth/LoginView.vue -->
+<!-- src/views/client/auth/LoginView.vue -->
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -7,8 +7,8 @@ import { loginService } from '../../../services/authService'
 const router = useRouter()
 
 const form = ref({
-  correo_registro: '',
-  contraseña: ''
+  correo: '',
+  contrasena: ''
 })
 
 const loading = ref(false)
@@ -21,21 +21,25 @@ const handleLogin = async () => {
 
     const response = await loginService(form.value)
 
-    // Guardar información básica de sesión (puedes adaptarlo si usas Pinia)
+    // Guardar información básica de sesión en localStorage
     localStorage.setItem('usuario_id', response.usuario_id)
     localStorage.setItem('tipo_usuario', response.tipo_usuario)
-    if (response.perfil) {
-      localStorage.setItem('perfil', JSON.stringify(response.perfil))
+    if (response.nombre) {
+      localStorage.setItem('nombre', response.nombre)
     }
 
-    // Redirigir según el tipo de usuario o a la vista principal
-    if (response.tipo_usuario === 'CLIENTE') {
-      router.push('/pedidos') // O a la ruta de inicio de clientes
+    // Redirigir según el rol del usuario en mayúsculas
+    const rol = (response.tipo_usuario || '').toUpperCase()
+
+    if (rol === 'CLIENTE') {
+      router.push('/cliente/mis-pedidos')
+    } else if (rol === 'EMPLEADO' || rol === 'ADMIN' || rol === 'RESTAURANTE') {
+      router.push('/restaurante/pedidos')
     } else {
       router.push('/')
     }
   } catch (err) {
-    console.error(err)
+    console.error("Error en login:", err)
     error.value = err.mensaje || 'Credenciales inválidas o error al iniciar sesión.'
   } finally {
     loading.value = false
@@ -58,12 +62,24 @@ const handleLogin = async () => {
       <form @submit.prevent="handleLogin" class="auth-form">
         <div class="form-group">
           <label for="correo">Correo electrónico</label>
-          <input type="email" id="correo" v-model="form.correo_registro" required placeholder="correo@ejemplo.com" />
+          <input 
+            type="email" 
+            id="correo" 
+            v-model="form.correo" 
+            required 
+            placeholder="correo@ejemplo.com" 
+          />
         </div>
 
         <div class="form-group">
           <label for="contrasena">Contraseña</label>
-          <input type="password" id="contrasena" v-model="form.contraseña" required placeholder="••••••••" />
+          <input 
+            type="password" 
+            id="contrasena" 
+            v-model="form.contrasena" 
+            required 
+            placeholder="••••••••" 
+          />
         </div>
 
         <button type="submit" class="auth-button" :disabled="loading">

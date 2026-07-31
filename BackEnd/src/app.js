@@ -13,6 +13,7 @@ const notificacionRoutes = require("./routes/NotificacionRoutes");
 const categoriaRoutes = require("./routes/categoriaRoutes");
 const restauranteRoutes = require("./routes/restauranteRoutes");
 const productoRoutes = require("./routes/productoRoutes");
+const authRoutes = require("./routes/authRoutes");
 
 const app = express();
 
@@ -39,7 +40,7 @@ app.use("/api", notificacionRoutes);
 app.use("/api/categorias", categoriaRoutes);
 app.use("/api/restaurantes", restauranteRoutes);
 app.use("/api/productos", productoRoutes);
-
+app.use("/api/auth", authRoutes);
 // Puerto
 const PORT = process.env.PORT || 5000;
 

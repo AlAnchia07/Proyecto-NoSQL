@@ -1,4 +1,3 @@
-
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -8,12 +7,10 @@ const router = useRouter()
 
 const form = ref({
   nombre: '',
-  correo_registro: '',
-  contraseña: '',
-  telefono: '',
-  direccion: '',
-  latitud: 9.9281, 
-  longitud: -84.0907
+  correo: '',
+  contrasena: '',
+  rol: 'CLIENTE', // Por defecto Cliente
+  restaurante: null
 })
 
 const loading = ref(false)
@@ -26,23 +23,17 @@ const handleRegister = async () => {
 
     const datosEnvio = {
       nombre: form.value.nombre,
-      correo_registro: form.value.correo_registro,
-      contraseña: form.value.contraseña,
-      telefono: form.value.telefono,
-      direccion: form.value.direccion,
-      ubicacion: {
-        type: 'Point',
-        coordinates: [Number(form.value.longitud), Number(form.value.latitud)]
-      }
+      correo: form.value.correo,
+      contrasena: form.value.contrasena,
+      rol: form.value.rol,
+      restaurante: form.value.rol === 'EMPLEADO' ? form.value.restaurante : null
     }
 
     await registrarClienteService(datosEnvio)
-    
-    // Redirigir al login tras un registro exitoso
     router.push('/login')
   } catch (err) {
-    console.error(err)
-    error.value = err.mensaje || 'No fue posible completar el registro.'
+    console.error("ERROR COMPLETO DEL BACKEND:", err) // <--- MIRA ESTO EN LA CONSOLA (F12)
+    error.value = err.mensaje || err.error || 'No fue posible completar el registro.'
   } finally {
     loading.value = false
   }
@@ -54,7 +45,7 @@ const handleRegister = async () => {
     <div class="auth-card">
       <div class="auth-header">
         <h1>Crear cuenta</h1>
-        <p>Regístrate para comenzar a realizar tus pedidos.</p>
+        <p>Regístrate para comenzar.</p>
       </div>
 
       <div v-if="error" class="auth-message auth-message--error">
@@ -63,28 +54,32 @@ const handleRegister = async () => {
 
       <form @submit.prevent="handleRegister" class="auth-form">
         <div class="form-group">
-          <label for="nombre">Nombre completo</label>
+          <label for="nombre">Nombre</label>
           <input type="text" id="nombre" v-model="form.nombre" required placeholder="Tu nombre" />
         </div>
 
         <div class="form-group">
-          <label for="correo">Correo electrónico</label>
-          <input type="email" id="correo" v-model="form.correo_registro" required placeholder="correo@ejemplo.com" />
+          <label for="correo">Correo</label>
+          <input type="email" id="correo" v-model="form.correo" required placeholder="correo@ejemplo.com" />
         </div>
 
         <div class="form-group">
           <label for="contrasena">Contraseña</label>
-          <input type="password" id="contrasena" v-model="form.contraseña" required placeholder="••••••••" />
+          <input type="password" id="contrasena" v-model="form.contrasena" required placeholder="••••••••" />
         </div>
 
         <div class="form-group">
-          <label for="telefono">Teléfono</label>
-          <input type="tel" id="telefono" v-model="form.telefono" placeholder="88888888" />
+          <label for="rol">Rol</label>
+          <select id="rol" v-model="form.rol" class="form-select">
+            <option value="CLIENTE">Cliente</option>
+            <option value="RESTAURANTE">Restaurante</option>
+          </select>
         </div>
 
-        <div class="form-group">
-          <label for="direccion">Dirección</label>
-          <input type="text" id="direccion" v-model="form.direccion" required placeholder="Tu dirección exacta" />
+        <!-- Campo condicional si es Empleado (según la tabla requiere ID de restaurante) -->
+        <div class="form-group" v-if="form.rol === 'EMPLEADO'">
+          <label for="restaurante">ID Restaurante (Solo empleado)</label>
+          <input type="text" id="restaurante" v-model="form.restaurante" placeholder="Ej. ID del restaurante" />
         </div>
 
         <button type="submit" class="auth-button" :disabled="loading">
@@ -113,7 +108,7 @@ const handleRegister = async () => {
   max-width: 480px;
   padding: 32px;
   border: 1px solid var(--border, #e2e8f0);
-  border-radius: var(--radius-md, 12px);
+  border-radius: 12px;
   background-color: #ffffff;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
 }
@@ -131,7 +126,7 @@ const handleRegister = async () => {
 
 .auth-header p {
   margin: 6px 0 0;
-  color: var(--text-muted, #64748b);
+  color: #64748b;
   font-size: 14px;
 }
 
@@ -166,17 +161,18 @@ const handleRegister = async () => {
   font-weight: 600;
 }
 
-.form-group input {
+.form-group input, .form-select {
   padding: 10px 14px;
-  border: 1px solid var(--border, #cbd5e1);
+  border: 1px solid #cbd5e1;
   border-radius: 8px;
   font-size: 14px;
   color: #172033;
   outline: none;
+  background-color: #fff;
   transition: border-color 0.2s;
 }
 
-.form-group input:focus {
+.form-group input:focus, .form-select:focus {
   border-color: #2057a6;
 }
 
@@ -206,7 +202,7 @@ const handleRegister = async () => {
   margin-top: 20px;
   text-align: center;
   font-size: 13px;
-  color: var(--text-muted, #64748b);
+  color: #64748b;
 }
 
 .auth-footer a {
