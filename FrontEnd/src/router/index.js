@@ -13,8 +13,8 @@ import NotificacionesView from "../views/NotificacionesView.vue";
 import RestaurantProductsView from "../views/restaurant/RestaurantProductsView.vue";
 import RestaurantProfileView from "../views/restaurant/RestaurantProfileView.vue";
 
-import LoginView from "../views/auth/LoginView.vue";
-import RegisterView from "../views/auth/RegisterView.vue";
+import LoginView from "../views/client/auth/LoginView.vue";
+import RegisterView from "../views/client/auth/RegisterView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

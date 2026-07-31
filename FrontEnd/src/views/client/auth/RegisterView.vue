@@ -2,7 +2,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { registrarClienteService } from '../../services/authService'
+import { registrarClienteService } from '../../../services/authService';
 
 const router = useRouter()
 
@@ -88,7 +88,7 @@ const handleRegister = async () => {
         </div>
 
         <button type="submit" class="auth-button" :disabled="loading">
-          {{ loading.value ? 'Registrando...' : 'Registrarse' }}
+          {{ loading ? 'Registrando...' : 'Registrarse' }}
         </button>
       </form>
 
