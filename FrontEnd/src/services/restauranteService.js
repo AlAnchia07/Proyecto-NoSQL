@@ -3,20 +3,24 @@ import { API_URL } from "../config/api";
 
 const RESTAURANTES_URL = `${API_URL}/restaurantes`;
 
-export async function getRestaurantePorId(idRestaurante) {
+export async function getRestaurantes() {
   try {
     const response = await axios.get(
-      `${RESTAURANTES_URL}/${idRestaurante}`
+      RESTAURANTES_URL
     );
 
     return response.data;
   } catch (error) {
-    console.error("Error al obtener el restaurante:", error);
+    console.error(
+      "Error al obtener los restaurantes:",
+      error
+    );
+
     throw error;
   }
 }
 
-export async function getRestaurantePorUsuario(idUsuario) {
+export async function getRestaurantesPorUsuario(idUsuario) {
   try {
     const response = await axios.get(
       `${RESTAURANTES_URL}/usuario/${idUsuario}`
@@ -25,7 +29,42 @@ export async function getRestaurantePorUsuario(idUsuario) {
     return response.data;
   } catch (error) {
     console.error(
-      "Error al obtener el restaurante por usuario:",
+      "Error al obtener los restaurantes del usuario:",
+      error
+    );
+
+    throw error;
+  }
+}
+
+export async function getRestaurantePorId(idRestaurante) {
+  try {
+    const response = await axios.get(
+      `${RESTAURANTES_URL}/${idRestaurante}`
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Error al obtener el restaurante:",
+      error
+    );
+
+    throw error;
+  }
+}
+
+export async function crearRestaurante(datosRestaurante) {
+  try {
+    const response = await axios.post(
+      RESTAURANTES_URL,
+      datosRestaurante
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Error al crear el restaurante:",
       error
     );
 
@@ -50,6 +89,7 @@ export async function editarRestaurante(
   }
 }
 
+/*
 export async function getRestaurantes() {
   try {
     const response = await axios.get(RESTAURANTES_URL);
@@ -60,3 +100,4 @@ export async function getRestaurantes() {
     throw error;
   }
 }
+  */
