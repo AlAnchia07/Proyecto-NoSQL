@@ -9,13 +9,9 @@
     </div>
 
     <div class="client-navbar__actions">
-      <button
-        type="button"
-        class="client-navbar__icon-button"
-        aria-label="Notificaciones"
-      >
-        <Bell />
-      </button>
+      <NotificationBell 
+        rutaNotificaciones="/cliente/notificaciones"
+      />
 
       <button type="button" class="client-navbar__profile">
         <div class="client-navbar__avatar">
@@ -32,10 +28,10 @@
 
 <script setup>
 import {
-  Bell,
   ChevronDown,
   ShoppingBasket
 } from "lucide-vue-next";
+import NotificationBell from "../notifications/NotificationBell.vue";
 </script>
 
 <style scoped>

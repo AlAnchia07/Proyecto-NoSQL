@@ -4,10 +4,19 @@ import { marcarLeidas } from '@/services/NotificacionService';
 import { useUsuarioStore } from "../../stores/UsuarioStore";
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
+import { Bell } from "lucide-vue-next";
+
+const props = defineProps({
+  rutaNotificaciones: {
+    type: String,
+    required: true
+  }
+});
 
 const router = useRouter();
 
 const usuarioStore = useUsuarioStore();
+usuarioStore.simularLoginCliente();
 
 const contadorNoLeidas = ref(0);
 
@@ -16,9 +25,6 @@ async function actualizarNoLeidas() {
         const datos = await contarNoLeidas(
             usuarioStore.usuario._id
         );
-
-        console.log( usuarioStore.usuario._id);
-
         contadorNoLeidas.value = datos.cantidad;
     
     } catch(error) {
@@ -37,22 +43,33 @@ async function marcarNotificacionesLeidas() {
     }
 }
 
-function abrirNotificaciones() {
-    marcarNotificacionesLeidas();
-    router.push("/notificaciones");
+async function abrirNotificaciones() {  
+    await marcarNotificacionesLeidas();
+    contadorNoLeidas.value = 0;
+    console.log(props.rutaNotificaciones);
+    router.push(props.rutaNotificaciones);
 }
 
 onMounted(actualizarNoLeidas);
 </script>
 
 <template>
-    <div class="campana m-4" @click="abrirNotificaciones">
-        <i class="bi bi-bell"></i>
+    <button
+        type="button"
+        class="notification-bell"
+        aria-label="Notificaciones"
+        @click="abrirNotificaciones"
+    >
+        <Bell />
 
-        <span v-if="contadorNoLeidas > 0" class="contador">
+
+        <span 
+            v-if="contadorNoLeidas > 0"
+            class="contador"
+            >
             {{ contadorNoLeidas }}
         </span>
-    </div>
+  </button>
 </template>
 
 <style scoped>
@@ -96,4 +113,16 @@ onMounted(actualizarNoLeidas);
         align-items: center;
         justify-content: center;
     }
+
+    .notification-bell {
+        position: relative;
+        display: grid;
+        place-items: center;
+        width: 38px;
+        height: 38px;
+        border: none;
+        border-radius: 50%;
+        background: transparent;
+        cursor: pointer;
+}
 </style>

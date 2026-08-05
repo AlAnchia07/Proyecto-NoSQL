@@ -37,6 +37,7 @@ class NotificacionController {
             res.status(200).json(notificaciones);
 
         } catch (err) {
+            console.log(err);
             res.status(500).json({
                 error: err.message
             });
@@ -55,7 +56,8 @@ class NotificacionController {
         });
 
     } catch (err) {
-        res.status(500).json({
+        console.error("Error en marcarLeida:", err);
+        res.status(500).json({    
             error: err.message
         });
     }

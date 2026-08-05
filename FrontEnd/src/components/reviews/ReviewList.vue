@@ -5,13 +5,21 @@ import { obtenerResumenReseñas } from "@/services/ResenaService";
 import { eliminarReseña } from "@/services/ResenaService";
 import { actualizarReseña } from "@/services/ResenaService";
 import ReseñaCard from "./Reseña.vue";
-import FiltradoReseña from "./FiltradoReseñas.vue"
-import FormularioReseña from "./FormularioReseña.vue";
-import Resumen from "./ResumenReseñas.vue";
-import { useRoute } from "vue-router";
+import FiltradoReseña from "./ReviewFilters.vue"
+import FormularioReseña from "./ReviewForm.vue";
+import Resumen from "./ReviewSummary.vue";
 
-const route = useRoute();
-const idRestaurante = route.params.id;
+const props = defineProps({
+    idRestaurante: {
+        type: String,
+        required: true
+    },
+    mostrarFormulario: {
+        type: Boolean,
+        default: false
+    }
+});
+
 
 const reseñas = ref([]);
 const filtroEstrellas = ref(null);
@@ -32,7 +40,7 @@ function cambiarFiltro(valor){
 async function cargarReseñas() {
     try {
         const datos = await obtenerReseñasRestaurante(
-            idRestaurante
+            props.idRestaurante
         );
 
         reseñas.value = datos;
@@ -45,9 +53,9 @@ async function cargarReseñas() {
 async function cargarResumen() {
     try{
         const datos = await obtenerResumenReseñas(
-            idRestaurante
+            props.idRestaurante
         )
-        console.log(resumen)
+        console.log(datos);
         resumen.value = datos
 
     }catch (error){
@@ -107,7 +115,7 @@ onMounted(actualizarTodo);
 </script>
 
 <template>
-    <div class="container d-flex flex-column gap-3 pt-4">
+    <div class="container d-flex flex-column gap-3">
 
         <div class="d-flex justify-content-between pb-2">
             <Resumen :resumen="resumen"/>
@@ -115,7 +123,7 @@ onMounted(actualizarTodo);
 
         <div class="d-flex flex-wrap gap-3 justify-content-between pb-2">
             <FiltradoReseña @filtrar="cambiarFiltro" :etiquetas="resumen"/>
-            <FormularioReseña @actualizar="actualizarTodo" :idRestaurante="idRestaurante"/>
+            <FormularioReseña v-if="mostrarFormulario" @actualizar="actualizarTodo" :idRestaurante="props.idRestaurante"/>
         </div>
 
         <TransitionGroup name="lista-reseñas" tag="div" class="d-flex flex-column gap-3">

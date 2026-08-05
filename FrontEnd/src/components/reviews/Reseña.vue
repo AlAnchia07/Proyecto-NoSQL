@@ -39,9 +39,6 @@ function tiempoTranscurrido(fecha) {
     });
 }
 
-onMounted(() => {
-        usuarioStore.simularLogin();
-    });
 
 </script>
 

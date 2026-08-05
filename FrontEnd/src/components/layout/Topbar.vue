@@ -5,13 +5,9 @@
     </div>
 
     <div class="topbar__actions">
-      <button
-        class="topbar__notification"
-        type="button"
-        aria-label="Ver notificaciones"
-      >
-        <Bell :size="21" :stroke-width="1.9" />
-      </button>
+        <NotificationBell 
+          rutaNotificaciones="/restaurante/notificaciones"
+        />
 
       <div class="topbar__user">
         <div class="topbar__avatar">LE</div>
@@ -35,6 +31,7 @@
 import { computed } from "vue";
 import { useRoute } from "vue-router";
 import { Bell, ChevronDown } from "lucide-vue-next";
+import NotificationBell from "../notifications/NotificationBell.vue";
 
 const route = useRoute();
 
