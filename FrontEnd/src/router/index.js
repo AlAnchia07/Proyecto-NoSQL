@@ -9,11 +9,12 @@ import RestaurantDetailView from "../views/client/restaurants/RestaurantDetailVi
 import CheckoutView from "../views/client/checkout/CheckoutView.vue";
 
 import RestaurantOrdersView from "../views/restaurant/RestaurantOrdersView.vue";
-import NotificacionesView from "../views/NotificacionesView.vue";
 import RestaurantProductsView from "../views/restaurant/RestaurantProductsView.vue";
 import RestaurantEditView from "../views/restaurant/RestaurantEditView.vue";
 import RestaurantListView from "../views/restaurant/RestaurantListView.vue";
 import AdminProfileView from "../views/restaurant/AdminProfileView.vue";
+import NotificationsList from "@/components/notifications/NotificationsList.vue";
+import RestaurantReviewsView from "@/views/restaurant/RestaurantReviewsView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -47,6 +48,11 @@ const router = createRouter({
           path: "mis-pedidos",
           name: "client-orders",
           component: MyOrdersView
+        },
+        {
+          path: "notificaciones",
+          name: "cliente-notificaciones",
+          component: NotificationsList
         }
       ]
     },
@@ -83,14 +89,18 @@ const router = createRouter({
           path: "perfil",
           name: "admin-profile",
           component: AdminProfileView
+        },
+        {
+          path: "notificaciones",
+          name: "notificaciones",
+          component: NotificationsList
+        },
+        {
+          path: "reviews",
+          name: "reviews",
+          component: RestaurantReviewsView
         }
       ]
-    },
-
-    {
-      path: "/notificaciones",
-      name: "notificaciones",
-      component: NotificacionesView
     },
 
     {

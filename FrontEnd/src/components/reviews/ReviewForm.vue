@@ -2,7 +2,7 @@
     import { ref, onMounted } from "vue";
     import { crearReseña } from "@/services/ResenaService";
     import ModalReseña from "./ModalReseña.vue";
-    import { useUsuarioStore } from "../../stores/UsuarioStore";
+    import { useUsuarioStore } from "../../stores/UsuarioStore.js";
 
     const usuarioStore = useUsuarioStore();
     const mostrarModal = ref(false);
