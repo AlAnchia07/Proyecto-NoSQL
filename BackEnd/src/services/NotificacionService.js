@@ -47,7 +47,7 @@ class NotificacionService {
                     "_id.dia" : -1
                 }
             }
-        ]);
+        ]); 
     }
 
     async contarNoLeidas(id_usuario) {

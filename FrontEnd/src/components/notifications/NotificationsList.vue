@@ -1,18 +1,20 @@
 <script setup>
-import Notificacion from './Notificacion.vue';
+console.log("MONTANDO NOTIFICATIONS LIST");
+import Notificacion from "./Notification.vue";
 import { traerNotificaciones } from '@/services/NotificacionService';
 import { ref,onMounted } from "vue";
-import { useUsuarioStore } from "../../stores/UsuarioStore";
+import { useUsuarioStore } from "../../stores/UsuarioStore.js";
 
 const notificaciones = ref();
 const usuarioStore = useUsuarioStore();
+usuarioStore.simularLoginCliente();
 
 async function consultarNotificaciones(){
     try {
         const datos = await traerNotificaciones(
             usuarioStore.usuario._id
         );
-
+        console.log(datos);
         notificaciones.value = datos;
 
     } catch(error) {
@@ -41,6 +43,7 @@ onMounted(consultarNotificaciones);
 <template>
     <div class="container">
         <h3>Notificaciones</h3>
+        <p>Visualiza tu historial de notificaciones</p>
         <div class="d-flex flex-column justify-content-start gap-4 pt-2">
             <div v-for="grupo in notificaciones" :key="grupo._id.dia" class="pt-3">
                 <h6><span class="bi bi-calendar"></span> - {{ formatearDia(grupo) }} -</h6>

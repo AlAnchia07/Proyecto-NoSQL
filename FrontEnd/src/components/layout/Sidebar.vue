@@ -35,7 +35,7 @@
       </RouterLink>
 
       <RouterLink
-        to="/restaurante/resenas"
+        to="/restaurante/reviews"
         class="sidebar__link"
       >
         <Star :size="20" :stroke-width="1.8" />

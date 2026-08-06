@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useCartStore } from "../../../stores/cartStore";
-
+import Resenas from "../../../components/reviews/ReviewList.vue"
 import {
   ArrowLeft,
   Heart,
@@ -18,6 +18,7 @@ import {
 import {
   getProductosPorRestaurante
 } from "../../../services/productoService";
+import ReviewList from "../../../components/reviews/ReviewList.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -264,6 +265,11 @@ onMounted(cargarDetalle);
             Proceder al pago
           </button>
         </aside>
+      </div>
+      <div class="pt-5">
+        <h2>Reseñas</h2>
+        <p>Visualiza y esribe una reseña al restaurante</p>
+        <ReviewList :mostrarFormulario="true" :idRestaurante="route.params.id"/>
       </div>
     </div>
   </section>
