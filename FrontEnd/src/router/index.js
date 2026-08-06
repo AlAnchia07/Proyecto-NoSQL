@@ -17,6 +17,7 @@ import AdminProfileView from "../views/restaurant/AdminProfileView.vue";
 
 import LoginView from "../views/client/auth/LoginView.vue";
 import RegisterView from "../views/client/auth/RegisterView.vue";
+import AdminGestionView from "../views/client/auth/AdminGestionView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -96,6 +97,11 @@ const router = createRouter({
           path: "perfil",
           name: "admin-profile",
           component: AdminProfileView
+        },
+        {
+          path: "usuarios",
+          name: "admin-gestion-usuarios",
+          component: AdminGestionView
         }
       ]
     },

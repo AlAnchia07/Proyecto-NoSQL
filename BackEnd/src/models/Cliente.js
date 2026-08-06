@@ -1,45 +1,24 @@
-const mongoose = require("mongoose");
+// src/models/Cliente.js
+const mongoose = require('mongoose');
 
 const clienteSchema = new mongoose.Schema({
-    id_usuario: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Usuario",
-        required: true
-    },
-    nombre: {
-        type: String,
-        required: true
-    },
-    direccion: {
-        type: String,
-        required: true
-    },
-    ubicacion: {
-        type: {
-            type: String,
-            enum: ["Point"],
-            required: true
-        },
-        coordinates: {
-            type: [Number],
-            required: true
-        }
-    },
-    url_imagen: {
-        type: String
-    },
-    telefono: {
-        type: String
-    },
-    favoritos: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Restaurante"
-    }]
+  id_usuario: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Usuario', 
+    required: true,
+    unique: true 
+  },
+  telefono: { 
+    type: String, 
+    default: '' 
+  },
+  direccion: { 
+    type: String, 
+    default: '' 
+  }
 }, {
-    collection: "Clientes"
+  timestamps: true
 });
 
-// Índice geoespacial para búsquedas por ubicación
-clienteSchema.index({ ubicacion: "2dsphere" });
-
-module.exports = mongoose.model("Cliente", clienteSchema);
+// Forzamos el nombre de la colección tal como lo tienes mapeado
+module.exports = mongoose.model('Clientes', clienteSchema, 'Clientes');
