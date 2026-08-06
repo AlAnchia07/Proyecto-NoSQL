@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <aside class="sidebar">
     <div class="sidebar__brand">
@@ -41,6 +42,15 @@
         <span>Reseñas</span>
       </RouterLink>
 
+    
+      <RouterLink
+        to="/restaurante/usuarios"
+        class="sidebar__link"
+      >
+        <Users :size="20" :stroke-width="1.8" />
+        <span>Usuarios</span>
+      </RouterLink>
+
       <RouterLink
         to="/restaurante/perfil"
         class="sidebar__link"
@@ -64,7 +74,8 @@ import {
   Package,
   Star,
   Store,
-  UserRound
+  UserRound,
+  Users
 } from "lucide-vue-next";
 </script>
 

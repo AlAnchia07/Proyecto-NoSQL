@@ -16,13 +16,27 @@ import AdminProfileView from "../views/restaurant/AdminProfileView.vue";
 import NotificationsList from "@/components/notifications/NotificationsList.vue";
 import RestaurantReviewsView from "@/views/restaurant/RestaurantReviewsView.vue";
 
+import LoginView from "../views/client/auth/LoginView.vue";
+import RegisterView from "../views/client/auth/RegisterView.vue";
+import AdminGestionView from "../views/client/auth/AdminGestionView.vue";
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
 
   routes: [
     {
       path: "/",
-      redirect: "/cliente"
+      redirect: "/register"
+    },
+    {
+      path: "/login",
+      name: "login",
+      component: LoginView
+    },
+    {
+      path: "/register",
+      name: "register",
+      component: RegisterView
     },
 
     {
@@ -89,6 +103,11 @@ const router = createRouter({
           path: "perfil",
           name: "admin-profile",
           component: AdminProfileView
+        },
+        {
+          path: "usuarios",
+          name: "admin-gestion-usuarios",
+          component: AdminGestionView
         },
         {
           path: "notificaciones",

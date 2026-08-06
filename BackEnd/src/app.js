@@ -13,6 +13,8 @@ const notificacionRoutes = require("./routes/NotificacionRoutes");
 const categoriaRoutes = require("./routes/categoriaRoutes");
 const restauranteRoutes = require("./routes/restauranteRoutes");
 const productoRoutes = require("./routes/productoRoutes");
+const authRoutes = require("./routes/authRoutes");
+const usuarioRoutes = require("./routes/usuarioRoutes");
 
 const app = express();
 
@@ -40,6 +42,8 @@ app.use("/api/categorias", categoriaRoutes);
 app.use("/api/restaurantes", restauranteRoutes);
 app.use("/api/productos", productoRoutes);
 
+app.use("/api/auth", authRoutes);
+app.use("/api/usuarios", usuarioRoutes);
 // Puerto
 const PORT = process.env.PORT || 5000;
 
