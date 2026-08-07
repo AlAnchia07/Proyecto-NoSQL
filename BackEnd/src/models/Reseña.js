@@ -3,7 +3,7 @@ const { default: mongoose, trusted } = require("mongoose");
 const reseñaSchema = new mongoose.Schema({
     id_cliente: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Cliente"
+        ref: "Clientes"
     },
     id_restaurante: {
         type: mongoose.Schema.Types.ObjectId,

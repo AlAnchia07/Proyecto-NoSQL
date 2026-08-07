@@ -22,7 +22,7 @@ const restauranteSchema = new mongoose.Schema(
   {
     id_usuario: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Usuario",
+      ref: "Usuarios",
       required: [true, "El usuario es obligatorio."],
     },
 

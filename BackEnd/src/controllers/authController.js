@@ -28,7 +28,14 @@ async function registrarUsuario(req, res) {
 
     await nuevoUsuario.save();
 
-    
+    //Aqui estoy agregando que si es de tipo usuario "CLIENTE" debe crearse un cliente asociado a la cuenta
+    if (rol === "CLIENTE") {
+      const nuevoCliente = new Cliente({
+          id_usuario: nuevoUsuario._id
+      });
+      await nuevoCliente.save();
+    }
+
     return res.status(201).json({
       mensaje: 'Usuario registrado exitosamente',
       usuario: {

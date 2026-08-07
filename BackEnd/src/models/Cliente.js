@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const clienteSchema = new mongoose.Schema({
   id_usuario: { 
     type: mongoose.Schema.Types.ObjectId, 
-    ref: 'Usuario', 
+    ref: 'Usuarios', 
     required: true,
     unique: true 
   },
@@ -15,6 +15,14 @@ const clienteSchema = new mongoose.Schema({
   direccion: { 
     type: String, 
     default: '' 
+  }, 
+  favoritos: {
+    type: Array,
+    default: []
+  },
+  url_imagen: {
+    type: String,
+    default: ""
   }
 }, {
   timestamps: true

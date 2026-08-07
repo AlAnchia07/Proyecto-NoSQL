@@ -50,14 +50,14 @@ function tiempoTranscurrido(fecha) {
 
                 <div class="d-flex align-items-center gap-3">
                     <img 
-                        :src="props.reseña.id_cliente.url_imagen"
+                        :src="props.reseña.id_cliente.url_imagen || 'https://firebasestorage.googleapis.com/v0/b/techshop-ef0e8.firebasestorage.app/o/BiteUp%2Fusuarios%2Fplaceholder.webp?alt=media&token=ee9d1da1-0b8b-44f4-8ccb-9f1966dc6268'"
                         class="img-fluid rounded-circle"
                         alt="Perfil"
                         style="width:40px;height:40px;object-fit:cover;"
                     >
 
                     <p class="mb-0 fw-medium">
-                        {{ props.reseña.id_cliente.nombre }}
+                        {{ props.reseña.id_cliente.id_usuario.nombre }}
                     </p>
                 </div>
 
@@ -83,7 +83,7 @@ function tiempoTranscurrido(fecha) {
                     {{ tiempoTranscurrido(props.reseña.fecha) }}
                 </small>
 
-                <div class="d-flex gap-2" v-if="usuarioStore.perfil._id === props.reseña.id_cliente._id">
+                <div class="d-flex gap-2" v-if="usuarioStore.perfil?._id === props.reseña.id_cliente._id">
                     <i class="bi bi-pencil actions text-success" @click="mostrarModalEdicion = true"></i>
                     <i class="bi bi-trash actions text-danger" @click="mostrarModal = true"></i>
                 </div>

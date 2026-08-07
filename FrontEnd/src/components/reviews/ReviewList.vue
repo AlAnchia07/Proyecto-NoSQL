@@ -23,7 +23,11 @@ const props = defineProps({
 
 const reseñas = ref([]);
 const filtroEstrellas = ref(null);
-const resumen = ref([]);
+const resumen = ref({
+    total: 0,
+    promedio: 0,
+    etiquetas: []
+});
 
 const reseñasFiltradas = computed(() => {
     if(filtroEstrellas.value === null){
@@ -106,6 +110,10 @@ async function modificarReseña(datos) {
 async function actualizarTodo() {
     await cargarReseñas();
     await cargarResumen();
+
+
+    console.log("Después de actualizar:", reseñas.value);
+    console.log("Filtradas:", reseñasFiltradas.value);
 }
 
 onMounted(actualizarTodo);
@@ -126,7 +134,12 @@ onMounted(actualizarTodo);
             <FormularioReseña v-if="mostrarFormulario" @actualizar="actualizarTodo" :idRestaurante="props.idRestaurante"/>
         </div>
 
-        <TransitionGroup name="lista-reseñas" tag="div" class="d-flex flex-column gap-3">
+        <div v-if="reseñasFiltradas.length === 0" class="text-center py-4 d-flex flex-column">
+            <i class="bi bi-star fs-3"></i>
+            <p>¡Aún no hay reseñas!</p>
+        </div>
+
+        <TransitionGroup name="lista-reseñas" tag="div" class="d-flex flex-column gap-3" v-else>
             <ReseñaCard
                 v-for="reseña in reseñasFiltradas"
                 :key="reseña._id"

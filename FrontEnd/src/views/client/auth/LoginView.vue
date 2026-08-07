@@ -3,8 +3,10 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { loginService } from '../../../services/authService'
+import { useUsuarioStore } from "@/stores/UsuarioStore";
 
 const router = useRouter()
+const usuarioStore = useUsuarioStore();
 
 const form = ref({
   correo: '',
@@ -20,6 +22,16 @@ const handleLogin = async () => {
     error.value = ''
 
     const response = await loginService(form.value)
+
+    //Se van a guardar los datos tambien en el usuarioStore
+    usuarioStore.iniciarSesion(
+      {
+        _id: response.usuario_id,
+        rol: response.tipo_usuario,
+      },
+      response.perfil
+    );
+
 
     // Guardar información básica de sesión en localStorage
     localStorage.setItem('usuario_id', response.usuario_id)

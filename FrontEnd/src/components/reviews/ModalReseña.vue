@@ -83,7 +83,7 @@ import { ref, onMounted } from "vue";
             </div>
 
             <button type="submit" class="btn btn-success mt-3">
-                {{ modo === "crear" ? "Publicar" : "Guardar" }}
+                <strong>{{ modo === "crear" ? "Publicar" : "Guardar" }}</strong>
             </button>
         </form>
     </div>
@@ -135,4 +135,5 @@ import { ref, onMounted } from "vue";
     .cerrar-modal:hover {
         transform: none;
     }
+
 </style>

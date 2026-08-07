@@ -16,7 +16,6 @@ const props = defineProps({
 const router = useRouter();
 
 const usuarioStore = useUsuarioStore();
-usuarioStore.simularLoginCliente();
 
 const contadorNoLeidas = ref(0);
 
