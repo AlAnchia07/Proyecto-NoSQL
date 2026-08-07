@@ -50,8 +50,7 @@
 
 <template>
         <button @click="mostrarModal = true" type="button" class="btn btn-success" style="width: 12rem;">
-            <i class="bi bi-pen-fill"></i>
-            Nueva reseña
+            <i class="bi bi-pen-fill"></i>  <strong>Nueva reseña</strong>
         </button>
 
     <ModalReseña
