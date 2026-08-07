@@ -27,6 +27,7 @@ const obtenerRestaurantes = async (req, res) => {
 
     res.json(restaurantes);
   } catch (error) {
+    console.error("Error obteniendo restaurantes:", error);
     res.status(500).json({
       mensaje: error.message
     });

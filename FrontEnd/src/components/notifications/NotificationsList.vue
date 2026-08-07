@@ -7,7 +7,6 @@ import { useUsuarioStore } from "../../stores/UsuarioStore.js";
 
 const notificaciones = ref();
 const usuarioStore = useUsuarioStore();
-usuarioStore.simularLoginCliente();
 
 async function consultarNotificaciones(){
     try {
@@ -44,7 +43,13 @@ onMounted(consultarNotificaciones);
     <div class="container">
         <h3>Notificaciones</h3>
         <p>Visualiza tu historial de notificaciones</p>
-        <div class="d-flex flex-column justify-content-start gap-4 pt-2">
+
+        <div v-if="notificaciones.length === 0" class="text-center py-4 d-flex flex-column">
+            <i class="bi bi-bell-fill fs-3"></i>
+            <p>¡Aún no hay notificaciones!</p>
+        </div>
+
+        <div class="d-flex flex-column justify-content-start gap-4 pt-2" v-else>
             <div v-for="grupo in notificaciones" :key="grupo._id.dia" class="pt-3">
                 <h6><span class="bi bi-calendar"></span> - {{ formatearDia(grupo) }} -</h6>
 

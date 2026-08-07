@@ -24,7 +24,14 @@ class ReseñaService {
             id_restaurante: new mongoose.Types.ObjectId(id)
         })
         .sort({ fecha: -1 })
-        .populate("id_cliente","nombre url_imagen")
+        .populate({
+            path: "id_cliente",
+            select: "url_imagen",
+            populate: {
+                path: "id_usuario",
+                select: "nombre correo"
+            }
+        });
     }
 
     async resumenReseñas(id){

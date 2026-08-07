@@ -49,6 +49,9 @@
                 <p class="promedio mb-0" v-if="resumen.length">
                     {{ promedio }}
                 </p>
+                <p class="promedio mb-0" v-else>
+                    0.00
+                </p>
                 <div class="estrellas">
                     <i v-for="n in 5" 
                         :key="n"
@@ -57,7 +60,10 @@
                     </i>
                 </div>
                 <p class="cantidad" v-if="resumen.length">
-                    ( {{ resumen[0].resumen[0].total}} reseñas)
+                    ( {{ resumen[0].resumen[0]?.total}} reseñas)
+                </p>
+                <p class="cantidad" v-else>
+                    (0 reseñas)
                 </p>
             </div>
         </div>
