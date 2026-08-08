@@ -19,6 +19,7 @@ import RestaurantReviewsView from "@/views/restaurant/RestaurantReviewsView.vue"
 import LoginView from "../views/client/auth/LoginView.vue";
 import RegisterView from "../views/client/auth/RegisterView.vue";
 import AdminGestionView from "../views/client/auth/AdminGestionView.vue";
+import FavoritesClient from "@/views/client/favorites/FavoritesClient.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -67,6 +68,11 @@ const router = createRouter({
           path: "notificaciones",
           name: "cliente-notificaciones",
           component: NotificationsList
+        },
+        {
+          path: "favoritos",
+          name: "favoritos",
+          component: FavoritesClient
         }
       ]
     },

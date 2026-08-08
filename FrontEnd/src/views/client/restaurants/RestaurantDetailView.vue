@@ -20,6 +20,9 @@ import {
 } from "../../../services/productoService";
 import ReviewList from "../../../components/reviews/ReviewList.vue";
 
+import { useUsuarioStore } from "@/stores/UsuarioStore";
+import { agregarFavoritos, eliminarFavoritos } from "@/services/clienteService";
+
 const route = useRoute();
 const router = useRouter();
 
@@ -92,6 +95,40 @@ const confirmOrder = () => {
 };
 
 onMounted(cargarDetalle);
+
+//Esta parte es para asignar un restaurante como favorito
+const usuarioStore = useUsuarioStore();
+
+const idRestaurante = route.params.id;
+const esFavorito = ref(usuarioStore.perfil.favoritos.includes(idRestaurante));
+
+const cambiarFavorito = async () => {
+    try {
+        if (esFavorito.value) {
+            await eliminarFavoritos(
+                usuarioStore.perfil._id,
+                idRestaurante
+            );
+
+            esFavorito.value = false;
+
+            usuarioStore.perfil.favoritos =usuarioStore.perfil.favoritos.filter(id => id !== idRestaurante);
+
+        } else {
+            await agregarFavoritos(
+                usuarioStore.perfil._id,
+                idRestaurante
+            );
+
+            esFavorito.value = true;
+
+            usuarioStore.perfil.favoritos.push(idRestaurante);
+        }
+
+    } catch (error) {
+        console.error("Error al actualizar favorito:", error);
+    }
+};
 </script>
 
 <template>
@@ -144,9 +181,9 @@ onMounted(cargarDetalle);
                 </div>
               </div>
 
-              <button class="favorite-button" type="button">
-                <Heart />
-                Favorito
+              <button class="favorite-button" type="button" @click="cambiarFavorito" :class="esFavorito ? 'favorite' : ''">
+                  <Heart />
+                  {{ esFavorito ? "Quitar favorito" : "Favorito" }}
               </button>
             </div>
           </header>
@@ -590,6 +627,11 @@ onMounted(cargarDetalle);
 .confirm-button:disabled {
   background-color: #aab8ad;
   cursor: not-allowed;
+}
+
+.favorite{
+  color:white;
+  background: var(--green-main);
 }
 
 @media (max-width: 1050px) {

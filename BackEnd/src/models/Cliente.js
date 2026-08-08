@@ -17,7 +17,10 @@ const clienteSchema = new mongoose.Schema({
     default: '' 
   }, 
   favoritos: {
-    type: Array,
+    type: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Restaurante"
+    }],
     default: []
   },
   url_imagen: {
