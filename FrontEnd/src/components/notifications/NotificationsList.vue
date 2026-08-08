@@ -5,7 +5,7 @@ import { traerNotificaciones } from '@/services/NotificacionService';
 import { ref,onMounted } from "vue";
 import { useUsuarioStore } from "../../stores/UsuarioStore.js";
 
-const notificaciones = ref();
+const notificaciones = ref([]);
 const usuarioStore = useUsuarioStore();
 
 async function consultarNotificaciones(){
@@ -36,6 +36,7 @@ function formatearDia(grupo) {
 }
 
 onMounted(consultarNotificaciones);
+
 
 </script>
 
