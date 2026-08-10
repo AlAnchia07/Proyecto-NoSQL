@@ -15,6 +15,28 @@
       </button>
     </div>
 
+    <div class="orders-tabs">
+      <button
+        type="button"
+        class="orders-tab"
+        :class="{ 'orders-tab--active': vistaActual === 'ACTIVOS' }"
+        @click="vistaActual = 'ACTIVOS'"
+      >
+        Pedidos activos
+        <span>{{ pedidosActivos.length }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="orders-tab"
+        :class="{ 'orders-tab--active': vistaActual === 'HISTORIAL' }"
+        @click="vistaActual = 'HISTORIAL'"
+      >
+        Historial
+        <span>{{ pedidosHistorial.length }}</span>
+      </button>
+    </div>
+
     <div v-if="loading" class="orders-view__message">
       Cargando pedidos...
     </div>
@@ -26,13 +48,20 @@
       {{ error }}
     </div>
 
-    <div v-else-if="pedidos.length === 0" class="orders-view__message">
-      No hay pedidos registrados para este restaurante.
+    <div
+      v-else-if="pedidosMostrados.length === 0"
+      class="orders-view__message"
+    >
+      {{
+        vistaActual === "ACTIVOS"
+          ? "No hay pedidos activos para este restaurante."
+          : "No hay pedidos en el historial."
+      }}
     </div>
 
     <div v-else class="orders-list">
       <article
-        v-for="pedido in pedidos"
+        v-for="pedido in pedidosMostrados"
         :key="pedido._id"
         class="order-card"
       >
@@ -85,7 +114,13 @@
           </div>
         </div>
 
-        <div class="order-card__actions">
+        <div
+          v-if="
+            pedido.estado !== 'CANCELADO' &&
+            pedido.estado !== 'ENTREGADO'
+          "
+          class="order-card__actions"
+        >
           <label :for="`estado-${pedido._id}`">
             Cambiar estado
           </label>
@@ -111,7 +146,12 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import {
+  computed,
+  onMounted,
+  onUnmounted,
+  ref
+} from "vue";
 
 import { useRestauranteStore } from "../../stores/RestauranteStore";
 
@@ -125,10 +165,36 @@ const restauranteStore = useRestauranteStore();
 const pedidos = ref([]);
 const loading = ref(true);
 const error = ref("");
+const vistaActual = ref("ACTIVOS");
 
-async function cargarPedidos() {
+const pedidosActivos = computed(() =>
+  pedidos.value.filter(
+    (pedido) =>
+      pedido.estado !== "ENTREGADO" &&
+      pedido.estado !== "CANCELADO"
+  )
+);
+
+const pedidosHistorial = computed(() =>
+  pedidos.value.filter(
+    (pedido) =>
+      pedido.estado === "ENTREGADO" ||
+      pedido.estado === "CANCELADO"
+  )
+);
+
+const pedidosMostrados = computed(() =>
+  vistaActual.value === "ACTIVOS"
+    ? pedidosActivos.value
+    : pedidosHistorial.value
+);
+
+async function cargarPedidos(mostrarCarga = true) {
   try {
-    loading.value = true;
+    if (mostrarCarga) {
+      loading.value = true;
+    }
+
     error.value = "";
 
     if (!restauranteStore.hayRestauranteActivo) {
@@ -161,7 +227,9 @@ async function cargarPedidos() {
       err.message ||
       "No fue posible cargar los pedidos.";
   } finally {
-    loading.value = false;
+    if (mostrarCarga) {
+      loading.value = false;
+    }
   }
 }
 
@@ -192,6 +260,8 @@ async function actualizarEstado(
     pedido.estado = estadoAnterior;
 
     error.value =
+      err.response?.data?.mensaje ||
+      err.message ||
       "No fue posible actualizar el estado del pedido.";
   } finally {
     pedido.actualizando = false;
@@ -247,9 +317,22 @@ function getEstadoClase(estado) {
   return `order-card__status--${estado.toLowerCase()}`;
 }
 
+let intervaloPedidos = null;
+
 onMounted(() => {
   restauranteStore.cargarRestauranteGuardado();
+
   cargarPedidos();
+
+  intervaloPedidos = setInterval(() => {
+    cargarPedidos(false);
+  }, 10000);
+});
+
+onUnmounted(() => {
+  if (intervaloPedidos) {
+    clearInterval(intervaloPedidos);
+  }
 });
 </script>
 
@@ -263,7 +346,7 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .orders-view__heading h1 {
@@ -291,6 +374,49 @@ onMounted(() => {
 .orders-view__heading button:disabled {
   cursor: not-allowed;
   opacity: 0.65;
+}
+
+.orders-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 22px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.orders-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 650;
+}
+
+.orders-tab span {
+  display: grid;
+  min-width: 24px;
+  height: 24px;
+  place-items: center;
+  padding: 0 7px;
+  border-radius: 999px;
+  background-color: #edf1ef;
+  font-size: 12px;
+}
+
+.orders-tab--active {
+  background-color: #e8f5ec;
+  color: var(--green-main);
+}
+
+.orders-tab--active span {
+  background-color: var(--green-main);
+  color: white;
 }
 
 .orders-view__message {
@@ -448,6 +574,15 @@ onMounted(() => {
   .orders-view__heading {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .orders-tabs {
+    width: 100%;
+  }
+
+  .orders-tab {
+    flex: 1;
+    justify-content: center;
   }
 
   .order-card__header {

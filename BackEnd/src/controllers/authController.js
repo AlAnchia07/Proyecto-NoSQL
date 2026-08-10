@@ -81,8 +81,9 @@ async function login(req, res) {
       usuario_id: usuario._id,
       nombre: usuario.nombre,
       correo: usuario.correo,
+      restaurante: usuario.restaurante,
       perfil
-    })
+    });
   } catch (error) {
     console.error(error)
     return res.status(500).json({ mensaje: 'Error en el servidor al iniciar sesión.' })

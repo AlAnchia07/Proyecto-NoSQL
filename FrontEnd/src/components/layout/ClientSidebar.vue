@@ -11,6 +11,7 @@
         <span>Inicio</span>
       </RouterLink>
 
+      <!-- 
       <RouterLink
         to="/cliente/explorar"
         class="client-sidebar__link"
@@ -19,6 +20,7 @@
         <Search class="client-sidebar__icon" />
         <span>Explorar</span>
       </RouterLink>
+      -->
 
       <RouterLink
         to="/cliente/favoritos"
@@ -48,21 +50,53 @@
       </RouterLink>
     </nav>
 
-    <div class="client-sidebar__decoration">
-      <Leaf />
-    </div>
+    <button
+      class="client-sidebar__logout"
+      type="button"
+      @click="cerrarSesion"
+    >
+      <LogOut class="client-sidebar__icon" />
+      <span>Cerrar sesión</span>
+    </button>
   </aside>
 </template>
 
 <script setup>
+import { useRouter } from "vue-router";
+
 import {
   Heart,
   House,
-  Leaf,
+  LogOut,
   ReceiptText,
-  Search,
+  //Search,
   UserRound
 } from "lucide-vue-next";
+
+import { useUsuarioStore } from "../../stores/UsuarioStore";
+import { useRestauranteStore } from "../../stores/RestauranteStore";
+import { useCartStore } from "../../stores/cartStore";
+
+const router = useRouter();
+
+const usuarioStore = useUsuarioStore();
+const restauranteStore = useRestauranteStore();
+const cartStore = useCartStore();
+
+function cerrarSesion() {
+  usuarioStore.cerrarSesion();
+
+  restauranteStore.limpiarRestauranteActivo();
+  cartStore.limpiarCarrito();
+
+  localStorage.removeItem("usuario");
+  localStorage.removeItem("usuario_id");
+  localStorage.removeItem("tipo_usuario");
+  localStorage.removeItem("nombre");
+  localStorage.removeItem("id_cliente_temporal");
+
+  router.replace("/login");
+}
 </script>
 
 <style scoped>
@@ -85,7 +119,8 @@ import {
   flex-direction: column;
 }
 
-.client-sidebar__link {
+.client-sidebar__link,
+.client-sidebar__logout {
   position: relative;
   display: flex;
   min-height: 82px;
@@ -102,7 +137,8 @@ import {
     color 0.2s ease;
 }
 
-.client-sidebar__link:hover {
+.client-sidebar__link:hover,
+.client-sidebar__logout:hover {
   background-color: #f3f8f4;
   color: var(--green-main);
 }
@@ -128,16 +164,12 @@ import {
   height: 22px;
 }
 
-.client-sidebar__decoration {
-  display: grid;
-  height: 70px;
-  place-items: center;
-  color: var(--green-main);
-}
-
-.client-sidebar__decoration svg {
-  width: 25px;
-  height: 25px;
+.client-sidebar__logout {
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
 }
 
 @media (max-width: 800px) {
@@ -148,18 +180,27 @@ import {
     bottom: 0;
     width: 100%;
     height: 68px;
+    flex-direction: row;
     border-top: 1px solid var(--border);
     border-right: 0;
   }
 
   .client-sidebar__nav {
+    display: flex;
     height: 100%;
+    flex: 1;
     flex-direction: row;
   }
 
   .client-sidebar__link {
     min-height: auto;
     flex: 1;
+    gap: 3px;
+  }
+
+  .client-sidebar__logout {
+    width: 72px;
+    min-height: auto;
     gap: 3px;
   }
 
@@ -170,10 +211,6 @@ import {
     left: 18px;
     width: auto;
     height: 3px;
-  }
-
-  .client-sidebar__decoration {
-    display: none;
   }
 }
 </style>

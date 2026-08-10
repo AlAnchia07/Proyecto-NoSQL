@@ -156,24 +156,41 @@ const obtenerProductosPorRestaurante = async (
   idRestaurante,
   incluirInactivos = false
 ) => {
-  await validarRestaurante(idRestaurante);
+  await validarRestaurante(
+    idRestaurante
+  );
 
   const filtro = {
-    id_restaurante: idRestaurante
+    id_restaurante:
+      idRestaurante
   };
 
   if (!incluirInactivos) {
+    //Vista del cliente: solamente productos activos y con stock disponible
+    filtro.estado = "ACTIVO";
+
+    filtro.cantidad_disponible = {
+      $gt: 0
+    };
+  } else {
+    //Vista administrativa: muestra ACTIVO y AGOTADO, pero no productos eliminados logicamente
     filtro.estado = {
       $ne: "INACTIVO"
     };
   }
 
-  return await Producto.find(filtro)
-    .populate("id_categoria", "nombre tipo estado")
+  return await Producto.find(
+    filtro
+  )
+    .populate(
+      "id_categoria",
+      "nombre tipo estado"
+    )
     .sort({
       createdAt: -1
     });
 };
+
 
 const editarProducto = async (
   idProducto,
