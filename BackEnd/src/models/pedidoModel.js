@@ -43,7 +43,7 @@ const pedidoSchema = new mongoose.Schema(
   {
     id_cliente: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Cliente",
+      ref: "Clientes",
       required: true
     },
 

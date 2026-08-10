@@ -5,16 +5,18 @@
     </div>
 
     <div class="topbar__actions">
-        <NotificationBell 
-          rutaNotificaciones="/restaurante/notificaciones"
-        />
+      <NotificationBell
+        rutaNotificaciones="/restaurante/notificaciones"
+      />
 
       <div class="topbar__user">
-        <div class="topbar__avatar">LE</div>
+        <div class="topbar__avatar">
+          {{ iniciales }}
+        </div>
 
         <div class="topbar__user-info">
-          <strong>La Espiga</strong>
-          <span>Administrador</span>
+          <strong>{{ nombreUsuario }}</strong>
+          <span>{{ rolUsuario }}</span>
         </div>
 
         <ChevronDown
@@ -30,13 +32,47 @@
 <script setup>
 import { computed } from "vue";
 import { useRoute } from "vue-router";
-import { Bell, ChevronDown } from "lucide-vue-next";
+import { ChevronDown } from "lucide-vue-next";
+
 import NotificationBell from "../notifications/NotificationBell.vue";
+import { useUsuarioStore } from "../../stores/UsuarioStore";
 
 const route = useRoute();
+const usuarioStore = useUsuarioStore();
 
 const titulo = computed(() => {
   return route.meta.title || "BiteUp";
+});
+
+const nombreUsuario = computed(() => {
+  return usuarioStore.usuario?.nombre || "Usuario";
+});
+
+const rolUsuario = computed(() => {
+  const rol = usuarioStore.usuario?.rol;
+
+  const roles = {
+    RESTAURANTE: "Administrador",
+    EMPLEADO: "Empleado",
+    CLIENTE: "Cliente"
+  };
+
+  return roles[rol] || rol || "";
+});
+
+const iniciales = computed(() => {
+  const nombre = nombreUsuario.value.trim();
+
+  if (!nombre) {
+    return "U";
+  }
+
+  return nombre
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((parte) => parte[0].toUpperCase())
+    .join("");
 });
 </script>
 
@@ -118,5 +154,4 @@ const titulo = computed(() => {
   color: var(--text-muted);
   font-size: 12px;
 }
-
 </style>

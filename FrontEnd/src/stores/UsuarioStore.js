@@ -44,11 +44,11 @@ export const useUsuarioStore = defineStore("usuario", {
 
   getters: {
     esCliente: (state) => {
-      return state.usuario?.tipo_usuario === "CLIENTE";
+      return state.usuario?.rol === "CLIENTE";
     },
 
     esAdministradorRestaurante: (state) => {
-      return state.usuario?.tipo_usuario === "RESTAURANTE";
+      return state.usuario?.rol === "RESTAURANTE";
     }
   }
 });

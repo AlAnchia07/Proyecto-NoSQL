@@ -1,7 +1,10 @@
 <script setup>
 import { computed, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
+
 import { useCartStore } from "../../../stores/cartStore";
+import { useUsuarioStore } from "../../../stores/UsuarioStore";
+
 import { crearPedido } from "../../../services/pedidoService";
 
 import {
@@ -18,7 +21,9 @@ import {
 } from "lucide-vue-next";
 
 const router = useRouter();
+
 const cartStore = useCartStore();
+const usuarioStore = useUsuarioStore();
 
 const metodoEntrega = ref("Retiro en el local");
 const metodoPago = ref("Tarjeta");
@@ -67,7 +72,8 @@ const disminuirCantidad = (producto) => {
 };
 
 const validarTarjeta = () => {
-  const numeroLimpio = datosTarjeta.numero.replace(/\s/g, "");
+  const numeroLimpio =
+    datosTarjeta.numero.replace(/\s/g, "");
 
   if (!datosTarjeta.nombre.trim()) {
     return "Ingresa el nombre del titular.";
@@ -89,7 +95,8 @@ const validarTarjeta = () => {
 };
 
 const validarSinpe = () => {
-  const telefonoLimpio = datosSinpe.telefono.replace(/\D/g, "");
+  const telefonoLimpio =
+    datosSinpe.telefono.replace(/\D/g, "");
 
   if (!/^\d{8}$/.test(telefonoLimpio)) {
     return "El número de SINPE debe contener 8 dígitos.";
@@ -133,13 +140,24 @@ const confirmarPago = async () => {
     procesandoPago.value = true;
     mensajeError.value = "";
 
-    const idCliente = localStorage.getItem(
-      "id_cliente_temporal"
-    );
+    if (!usuarioStore.usuario) {
+      throw new Error(
+        "Debes iniciar sesión para realizar un pedido."
+      );
+    }
+
+    if (usuarioStore.usuario.rol !== "CLIENTE") {
+      throw new Error(
+        "Solo una cuenta de cliente puede realizar pedidos."
+      );
+    }
+
+    const idCliente =
+      usuarioStore.perfil?._id;
 
     if (!idCliente) {
       throw new Error(
-        "No se ha configurado un cliente temporal para realizar el pedido."
+        "No se encontró el perfil de cliente asociado a tu cuenta."
       );
     }
 
@@ -152,18 +170,20 @@ const confirmarPago = async () => {
     const datosPedido = {
       id_cliente: idCliente,
 
-      id_restaurante: restaurante.value._id,
+      id_restaurante:
+        restaurante.value._id,
 
-      productos_comprados: productos.value.map(
-        (producto) => ({
-          id_producto: producto._id,
-          nombre: producto.nombre,
-          cantidad: producto.quantity,
-          precio_unitario: Number(
-            producto.precio_descuento
-          )
-        })
-      ),
+      productos_comprados:
+        productos.value.map(
+          (producto) => ({
+            id_producto: producto._id,
+            nombre: producto.nombre,
+            cantidad: producto.quantity,
+            precio_unitario: Number(
+              producto.precio_descuento
+            )
+          })
+        ),
 
       descuento: 0,
 
@@ -180,13 +200,20 @@ const confirmarPago = async () => {
             : "EFECTIVO"
     };
 
-    const pedidoCreado = await crearPedido(datosPedido);
+    const pedidoCreado =
+      await crearPedido(datosPedido);
 
-    console.log("Pedido creado correctamente:", pedidoCreado);
+    console.log(
+      "Pedido creado correctamente:",
+      pedidoCreado
+    );
 
     mostrarConfirmacion.value = true;
   } catch (error) {
-    console.error("Error al confirmar el pedido:", error);
+    console.error(
+      "Error al confirmar el pedido:",
+      error
+    );
 
     mensajeError.value =
       error.message ||
@@ -199,16 +226,22 @@ const confirmarPago = async () => {
 const finalizarPedido = () => {
   cartStore.limpiarCarrito();
   mostrarConfirmacion.value = false;
-  router.push("/cliente/mis-pedidos");
+
+  router.push(
+    "/cliente/mis-pedidos"
+  );
 };
 
 const volverAlRestaurante = () => {
   if (restaurante.value?._id) {
-    router.push(`/cliente/restaurante/${restaurante.value._id}`);
+    router.push(
+      `/cliente/restaurante/${restaurante.value._id}`
+    );
+
     return;
   }
 
-  router.push("/cliente/inicio");
+  router.push("/cliente");
 };
 </script>
 
@@ -223,7 +256,10 @@ const volverAlRestaurante = () => {
       Volver al restaurante
     </button>
 
-    <div v-if="productos.length === 0" class="empty-checkout">
+    <div
+      v-if="productos.length === 0"
+      class="empty-checkout"
+    >
       <ShoppingBag />
 
       <h1>Tu carrito está vacío</h1>
@@ -232,7 +268,10 @@ const volverAlRestaurante = () => {
         Agrega algunos productos antes de continuar con el pago.
       </p>
 
-      <button type="button" @click="router.push('/cliente/inicio')">
+      <button
+        type="button"
+        @click="router.push('/cliente')"
+      >
         Explorar restaurantes
       </button>
     </div>
@@ -241,7 +280,9 @@ const volverAlRestaurante = () => {
       <header class="checkout-header">
         <div>
           <p>Último paso</p>
+
           <h1>Finalizar compra</h1>
+
           <span>
             Revisa tu pedido y selecciona cómo deseas pagar.
           </span>
@@ -263,7 +304,10 @@ const volverAlRestaurante = () => {
 
               <div>
                 <h2>Método de entrega</h2>
-                <p>Selecciona cómo deseas recibir tu pedido.</p>
+
+                <p>
+                  Selecciona cómo deseas recibir tu pedido.
+                </p>
               </div>
             </div>
 
@@ -272,7 +316,8 @@ const volverAlRestaurante = () => {
                 class="selection-option"
                 :class="{
                   'selection-option--active':
-                    metodoEntrega === 'Retiro en el local'
+                    metodoEntrega ===
+                    'Retiro en el local'
                 }"
               >
                 <input
@@ -284,11 +329,17 @@ const volverAlRestaurante = () => {
                 <Building2 />
 
                 <div>
-                  <strong>Retiro en el local</strong>
+                  <strong>
+                    Retiro en el local
+                  </strong>
+
                   <span>
                     Recoge el pedido directamente en el restaurante.
                   </span>
-                  <small>Sin costo adicional</small>
+
+                  <small>
+                    Sin costo adicional
+                  </small>
                 </div>
               </label>
 
@@ -296,7 +347,8 @@ const volverAlRestaurante = () => {
                 class="selection-option"
                 :class="{
                   'selection-option--active':
-                    metodoEntrega === 'Express'
+                    metodoEntrega ===
+                    'Express'
                 }"
               >
                 <input
@@ -308,11 +360,17 @@ const volverAlRestaurante = () => {
                 <MapPin />
 
                 <div>
-                  <strong>Entrega express</strong>
+                  <strong>
+                    Entrega express
+                  </strong>
+
                   <span>
                     Recibe el pedido en la dirección registrada.
                   </span>
-                  <small>{{ formatCurrency(1500) }}</small>
+
+                  <small>
+                    {{ formatCurrency(1500) }}
+                  </small>
                 </div>
               </label>
             </div>
@@ -326,7 +384,10 @@ const volverAlRestaurante = () => {
 
               <div>
                 <h2>Método de pago</h2>
-                <p>Selecciona una opción para completar la compra.</p>
+
+                <p>
+                  Selecciona una opción para completar la compra.
+                </p>
               </div>
             </div>
 
@@ -343,6 +404,7 @@ const volverAlRestaurante = () => {
                   type="radio"
                   value="Tarjeta"
                 />
+
                 <CreditCard />
                 <span>Tarjeta</span>
               </label>
@@ -359,6 +421,7 @@ const volverAlRestaurante = () => {
                   type="radio"
                   value="SINPE"
                 />
+
                 <Smartphone />
                 <span>SINPE</span>
               </label>
@@ -375,14 +438,23 @@ const volverAlRestaurante = () => {
                   type="radio"
                   value="Efectivo"
                 />
+
                 <Banknote />
                 <span>Efectivo</span>
               </label>
             </div>
 
-            <div v-if="metodoPago === 'Tarjeta'" class="payment-form">
-              <div class="form-field form-field--full">
-                <label for="cardName">Nombre del titular</label>
+            <div
+              v-if="metodoPago === 'Tarjeta'"
+              class="payment-form"
+            >
+              <div
+                class="form-field form-field--full"
+              >
+                <label for="cardName">
+                  Nombre del titular
+                </label>
+
                 <input
                   id="cardName"
                   v-model="datosTarjeta.nombre"
@@ -391,8 +463,13 @@ const volverAlRestaurante = () => {
                 />
               </div>
 
-              <div class="form-field form-field--full">
-                <label for="cardNumber">Número de tarjeta</label>
+              <div
+                class="form-field form-field--full"
+              >
+                <label for="cardNumber">
+                  Número de tarjeta
+                </label>
+
                 <input
                   id="cardNumber"
                   v-model="datosTarjeta.numero"
@@ -404,7 +481,10 @@ const volverAlRestaurante = () => {
               </div>
 
               <div class="form-field">
-                <label for="cardExpiration">Vencimiento</label>
+                <label for="cardExpiration">
+                  Vencimiento
+                </label>
+
                 <input
                   id="cardExpiration"
                   v-model="datosTarjeta.vencimiento"
@@ -415,7 +495,10 @@ const volverAlRestaurante = () => {
               </div>
 
               <div class="form-field">
-                <label for="cardCvv">CVV</label>
+                <label for="cardCvv">
+                  CVV
+                </label>
+
                 <input
                   id="cardCvv"
                   v-model="datosTarjeta.cvv"
@@ -427,9 +510,15 @@ const volverAlRestaurante = () => {
               </div>
             </div>
 
-            <div v-else-if="metodoPago === 'SINPE'" class="payment-form">
+            <div
+              v-else-if="metodoPago === 'SINPE'"
+              class="payment-form"
+            >
               <div class="form-field">
-                <label for="sinpePhone">Número telefónico</label>
+                <label for="sinpePhone">
+                  Número telefónico
+                </label>
+
                 <input
                   id="sinpePhone"
                   v-model="datosSinpe.telefono"
@@ -455,14 +544,19 @@ const volverAlRestaurante = () => {
               </div>
             </div>
 
-            <div v-else class="cash-message">
+            <div
+              v-else
+              class="cash-message"
+            >
               <Banknote />
 
               <div>
-                <strong>Pago al retirar o recibir</strong>
+                <strong>
+                  Pago al retirar o recibir
+                </strong>
+
                 <p>
-                  El pago se realizará en efectivo cuando recibas tu
-                  pedido.
+                  El pago se realizará en efectivo cuando recibas tu pedido.
                 </p>
               </div>
             </div>
@@ -470,23 +564,36 @@ const volverAlRestaurante = () => {
         </main>
 
         <aside class="order-summary">
-          <div class="order-summary__restaurant">
+          <div
+            class="order-summary__restaurant"
+          >
             <img
               :src="
                 restaurante?.url_imagen ||
                 'https://placehold.co/160x160?text=BiteUp'
               "
-              :alt="restaurante?.nombre || 'Restaurante'"
+              :alt="
+                restaurante?.nombre ||
+                'Restaurante'
+              "
             />
 
             <div>
               <p>Pedido de</p>
-              <h2>{{ restaurante?.nombre }}</h2>
-              <span>{{ restaurante?.direccion }}</span>
+
+              <h2>
+                {{ restaurante?.nombre }}
+              </h2>
+
+              <span>
+                {{ restaurante?.direccion }}
+              </span>
             </div>
           </div>
 
-          <div class="order-summary__products">
+          <div
+            class="order-summary__products"
+          >
             <article
               v-for="producto in productos"
               :key="producto._id"
@@ -500,23 +607,39 @@ const volverAlRestaurante = () => {
                 :alt="producto.nombre"
               />
 
-              <div class="summary-product__info">
-                <h3>{{ producto.nombre }}</h3>
+              <div
+                class="summary-product__info"
+              >
+                <h3>
+                  {{ producto.nombre }}
+                </h3>
 
                 <span>
-                  {{ formatCurrency(producto.precio_descuento) }}
+                  {{
+                    formatCurrency(
+                      producto.precio_descuento
+                    )
+                  }}
                 </span>
 
-                <div class="quantity-control">
+                <div
+                  class="quantity-control"
+                >
                   <button
                     type="button"
                     aria-label="Disminuir cantidad"
-                    @click="disminuirCantidad(producto)"
+                    @click="
+                      disminuirCantidad(
+                        producto
+                      )
+                    "
                   >
                     <Minus />
                   </button>
 
-                  <strong>{{ producto.quantity }}</strong>
+                  <strong>
+                    {{ producto.quantity }}
+                  </strong>
 
                   <button
                     type="button"
@@ -525,27 +648,39 @@ const volverAlRestaurante = () => {
                       producto.quantity >=
                       producto.cantidad_disponible
                     "
-                    @click="aumentarCantidad(producto)"
+                    @click="
+                      aumentarCantidad(
+                        producto
+                      )
+                    "
                   >
                     <Plus />
                   </button>
                 </div>
               </div>
 
-              <strong class="summary-product__total">
+              <strong
+                class="summary-product__total"
+              >
                 {{
                   formatCurrency(
-                    producto.precio_descuento * producto.quantity
+                    producto.precio_descuento *
+                    producto.quantity
                   )
                 }}
               </strong>
             </article>
           </div>
 
-          <div class="order-summary__totals">
+          <div
+            class="order-summary__totals"
+          >
             <div>
               <span>Subtotal</span>
-              <strong>{{ formatCurrency(subtotal) }}</strong>
+
+              <strong>
+                {{ formatCurrency(subtotal) }}
+              </strong>
             </div>
 
             <div>
@@ -555,18 +690,28 @@ const volverAlRestaurante = () => {
                 {{
                   costoEntrega === 0
                     ? "Gratis"
-                    : formatCurrency(costoEntrega)
+                    : formatCurrency(
+                        costoEntrega
+                      )
                 }}
               </strong>
             </div>
 
-            <div class="order-summary__total">
+            <div
+              class="order-summary__total"
+            >
               <span>Total</span>
-              <strong>{{ formatCurrency(total) }}</strong>
+
+              <strong>
+                {{ formatCurrency(total) }}
+              </strong>
             </div>
           </div>
 
-          <p v-if="mensajeError" class="error-message">
+          <p
+            v-if="mensajeError"
+            class="error-message"
+          >
             {{ mensajeError }}
           </p>
 
@@ -583,45 +728,70 @@ const volverAlRestaurante = () => {
             }}
           </button>
 
-          <small class="simulation-message">
+          <small
+            class="simulation-message"
+          >
             El pago es simulado para fines académicos.
           </small>
         </aside>
       </div>
     </template>
 
-    <div v-if="mostrarConfirmacion" class="modal-overlay">
-      <div class="confirmation-modal">
-        <div class="confirmation-modal__icon">
+    <div
+      v-if="mostrarConfirmacion"
+      class="modal-overlay"
+    >
+      <div
+        class="confirmation-modal"
+      >
+        <div
+          class="confirmation-modal__icon"
+        >
           <CheckCircle2 />
         </div>
 
         <p>Pago confirmado</p>
-        <h2>¡Tu pedido fue realizado!</h2>
+
+        <h2>
+          ¡Tu pedido fue realizado!
+        </h2>
 
         <span>
-          El restaurante recibió tu solicitud y pronto comenzará a
-          prepararla.
+          El restaurante recibió tu solicitud y pronto comenzará a prepararla.
         </span>
 
-        <div class="confirmation-modal__summary">
+        <div
+          class="confirmation-modal__summary"
+        >
           <div>
             <span>Restaurante</span>
-            <strong>{{ restaurante?.nombre }}</strong>
+
+            <strong>
+              {{ restaurante?.nombre }}
+            </strong>
           </div>
 
           <div>
             <span>Total</span>
-            <strong>{{ formatCurrency(total) }}</strong>
+
+            <strong>
+              {{ formatCurrency(total) }}
+            </strong>
           </div>
 
           <div>
             <span>Pago</span>
-            <strong>{{ metodoPago }}</strong>
+
+            <strong>
+              {{ metodoPago }}
+            </strong>
           </div>
         </div>
 
-        <button type="button" @click="finalizarPedido">
+        <button
+          type="button"
+          @click="finalizarPedido"
+        >
           Ver mis pedidos
         </button>
       </div>
@@ -700,7 +870,9 @@ const volverAlRestaurante = () => {
 
 .checkout-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 390px;
+  grid-template-columns:
+    minmax(0, 1fr)
+    390px;
   gap: 26px;
   align-items: start;
 }
@@ -715,7 +887,9 @@ const volverAlRestaurante = () => {
   border: 1px solid #e0e6e2;
   border-radius: 18px;
   background: #fff;
-  box-shadow: 0 10px 28px rgba(16, 24, 40, 0.06);
+  box-shadow:
+    0 10px 28px
+    rgba(16, 24, 40, 0.06);
 }
 
 .checkout-card {
@@ -759,14 +933,16 @@ const volverAlRestaurante = () => {
 
 .option-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
   gap: 15px;
 }
 
 .selection-option {
   position: relative;
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr);
+  grid-template-columns:
+    28px minmax(0, 1fr);
   gap: 13px;
   padding: 18px;
   border: 1px solid #dfe5e1;
@@ -812,7 +988,8 @@ const volverAlRestaurante = () => {
 .selection-option--active {
   border-color: #208b3a;
   background: #f3fbf5;
-  box-shadow: 0 0 0 1px #208b3a;
+  box-shadow:
+    0 0 0 1px #208b3a;
 }
 
 .selection-option--active > svg {
@@ -821,7 +998,8 @@ const volverAlRestaurante = () => {
 
 .payment-options {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns:
+    repeat(3, 1fr);
   gap: 12px;
 }
 
@@ -852,12 +1030,14 @@ const volverAlRestaurante = () => {
   border-color: #208b3a;
   background: #f3fbf5;
   color: #208b3a;
-  box-shadow: 0 0 0 1px #208b3a;
+  box-shadow:
+    0 0 0 1px #208b3a;
 }
 
 .payment-form {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns:
+    repeat(2, 1fr);
   gap: 16px;
   margin-top: 22px;
   padding-top: 22px;
@@ -896,7 +1076,9 @@ const volverAlRestaurante = () => {
 
 .form-field input:focus {
   border-color: #208b3a;
-  box-shadow: 0 0 0 3px rgba(32, 139, 58, 0.1);
+  box-shadow:
+    0 0 0 3px
+    rgba(32, 139, 58, 0.1);
 }
 
 .cash-message {
@@ -975,7 +1157,10 @@ const volverAlRestaurante = () => {
 
 .summary-product {
   display: grid;
-  grid-template-columns: 55px minmax(0, 1fr) auto;
+  grid-template-columns:
+    55px
+    minmax(0, 1fr)
+    auto;
   gap: 11px;
   align-items: start;
 }
@@ -1148,7 +1333,8 @@ const volverAlRestaurante = () => {
   display: grid;
   padding: 20px;
   place-items: center;
-  background: rgba(10, 24, 38, 0.6);
+  background:
+    rgba(10, 24, 38, 0.6);
 }
 
 .confirmation-modal {
@@ -1157,7 +1343,9 @@ const volverAlRestaurante = () => {
   padding: 31px;
   border-radius: 20px;
   background: #fff;
-  box-shadow: 0 25px 65px rgba(0, 0, 0, 0.2);
+  box-shadow:
+    0 25px 65px
+    rgba(0, 0, 0, 0.2);
   text-align: center;
 }
 
@@ -1258,7 +1446,9 @@ const volverAlRestaurante = () => {
   }
 
   .summary-product {
-    grid-template-columns: 50px minmax(0, 1fr);
+    grid-template-columns:
+      50px
+      minmax(0, 1fr);
   }
 
   .summary-product__total {

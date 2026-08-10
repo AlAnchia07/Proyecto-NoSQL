@@ -101,7 +101,11 @@
 
 <script setup>
 import { onMounted, ref } from "vue";
+
+import { useUsuarioStore } from "../../../stores/UsuarioStore";
 import { getPedidosCliente } from "../../../services/pedidoService";
+
+const usuarioStore = useUsuarioStore();
 
 const pedidos = ref([]);
 const loading = ref(true);
@@ -112,21 +116,35 @@ async function cargarPedidos() {
     loading.value = true;
     error.value = "";
 
-    const idClienteTemporal = localStorage.getItem(
-      "id_cliente_temporal"
-    );
-
-    if (!idClienteTemporal) {
+    if (!usuarioStore.usuario) {
       throw new Error(
-        "No se encontró el cliente temporal."
+        "Debes iniciar sesión para consultar tus pedidos."
+      );
+    }
+
+    if (usuarioStore.usuario.rol !== "CLIENTE") {
+      throw new Error(
+        "Esta sección corresponde únicamente a clientes."
+      );
+    }
+
+    const idCliente =
+      usuarioStore.perfil?._id;
+
+    if (!idCliente) {
+      throw new Error(
+        "No se encontró el perfil de cliente asociado a tu cuenta."
       );
     }
 
     pedidos.value = await getPedidosCliente(
-      idClienteTemporal
+      idCliente
     );
   } catch (err) {
-    console.error("Error al cargar los pedidos:", err);
+    console.error(
+      "Error al cargar los pedidos:",
+      err
+    );
 
     error.value =
       err.message ||
@@ -149,10 +167,13 @@ function formatearFecha(fecha) {
     return "Fecha no disponible";
   }
 
-  return new Date(fecha).toLocaleString("es-CR", {
-    dateStyle: "medium",
-    timeStyle: "short"
-  });
+  return new Date(fecha).toLocaleString(
+    "es-CR",
+    {
+      dateStyle: "medium",
+      timeStyle: "short"
+    }
+  );
 }
 
 function formatearEstado(estado) {

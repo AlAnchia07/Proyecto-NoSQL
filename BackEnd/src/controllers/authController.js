@@ -76,9 +76,11 @@ async function login(req, res) {
     }
 
     return res.status(200).json({
-      mensaje: 'Inicio de sesión exitoso',
+      mensaje: "Inicio de sesión exitoso",
       tipo_usuario: usuario.rol,
       usuario_id: usuario._id,
+      nombre: usuario.nombre,
+      correo: usuario.correo,
       perfil
     })
   } catch (error) {
