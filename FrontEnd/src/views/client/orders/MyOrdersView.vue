@@ -7,6 +7,28 @@
       </div>
     </div>
 
+    <div class="orders-tabs">
+      <button
+        type="button"
+        class="orders-tab"
+        :class="{ 'orders-tab--active': vistaActual === 'ACTIVOS' }"
+        @click="vistaActual = 'ACTIVOS'"
+      >
+        Pedidos activos
+        <span>{{ pedidosActivos.length }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="orders-tab"
+        :class="{ 'orders-tab--active': vistaActual === 'HISTORIAL' }"
+        @click="vistaActual = 'HISTORIAL'"
+      >
+        Historial
+        <span>{{ pedidosHistorial.length }}</span>
+      </button>
+    </div>
+
     <div v-if="loading" class="orders-view__message">
       Cargando pedidos...
     </div>
@@ -25,9 +47,20 @@
       Todavía no tienes pedidos registrados.
     </div>
 
+    <div
+      v-else-if="pedidosMostrados.length === 0"
+      class="orders-view__message"
+    >
+      {{
+        vistaActual === "ACTIVOS"
+          ? "No tienes pedidos activos en este momento."
+          : "No tienes pedidos en el historial."
+      }}
+    </div>
+
     <div v-else class="orders-list">
       <article
-        v-for="pedido in pedidos"
+        v-for="pedido in pedidosMostrados"
         :key="pedido._id"
         class="order-card"
       >
@@ -100,7 +133,11 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import {
+  computed,
+  onMounted,
+  ref
+} from "vue";
 
 import { useUsuarioStore } from "../../../stores/UsuarioStore";
 import { getPedidosCliente } from "../../../services/pedidoService";
@@ -110,6 +147,29 @@ const usuarioStore = useUsuarioStore();
 const pedidos = ref([]);
 const loading = ref(true);
 const error = ref("");
+const vistaActual = ref("ACTIVOS");
+
+const pedidosActivos = computed(() =>
+  pedidos.value.filter(
+    (pedido) =>
+      pedido.estado !== "ENTREGADO" &&
+      pedido.estado !== "CANCELADO"
+  )
+);
+
+const pedidosHistorial = computed(() =>
+  pedidos.value.filter(
+    (pedido) =>
+      pedido.estado === "ENTREGADO" ||
+      pedido.estado === "CANCELADO"
+  )
+);
+
+const pedidosMostrados = computed(() =>
+  vistaActual.value === "ACTIVOS"
+    ? pedidosActivos.value
+    : pedidosHistorial.value
+);
 
 async function cargarPedidos() {
   try {
@@ -137,9 +197,10 @@ async function cargarPedidos() {
       );
     }
 
-    pedidos.value = await getPedidosCliente(
-      idCliente
-    );
+    pedidos.value =
+      await getPedidosCliente(
+        idCliente
+      );
   } catch (err) {
     console.error(
       "Error al cargar los pedidos:",
@@ -227,7 +288,7 @@ onMounted(cargarPedidos);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 26px;
+  margin-bottom: 20px;
 }
 
 .orders-view h1 {
@@ -239,6 +300,49 @@ onMounted(cargarPedidos);
 .orders-view__header p {
   margin: 7px 0 0;
   color: var(--text-muted);
+}
+
+.orders-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 22px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.orders-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 650;
+}
+
+.orders-tab span {
+  display: grid;
+  min-width: 24px;
+  height: 24px;
+  place-items: center;
+  padding: 0 7px;
+  border-radius: 999px;
+  background-color: #edf1ef;
+  font-size: 12px;
+}
+
+.orders-tab--active {
+  background-color: #e8f5ec;
+  color: var(--green-main);
+}
+
+.orders-tab--active span {
+  background-color: var(--green-main);
+  color: white;
 }
 
 .orders-view__message {
@@ -370,6 +474,15 @@ onMounted(cargarPedidos);
 }
 
 @media (max-width: 700px) {
+  .orders-tabs {
+    width: 100%;
+  }
+
+  .orders-tab {
+    flex: 1;
+    justify-content: center;
+  }
+
   .order-card__info {
     grid-template-columns: 1fr;
   }

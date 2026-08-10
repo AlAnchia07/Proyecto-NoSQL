@@ -1,8 +1,11 @@
 <!-- eslint-disable vue/multi-word-component-names -->
+
 <template>
   <aside class="sidebar">
     <div class="sidebar__brand">
-      <div class="sidebar__brand-icon">B</div>
+      <div class="sidebar__brand-icon">
+        B
+      </div>
 
       <div>
         <h1>BiteUp</h1>
@@ -12,17 +15,26 @@
 
     <nav class="sidebar__nav">
       <RouterLink
+        v-if="esAdministrador"
         to="/restaurante/restaurantes"
         class="sidebar__link"
       >
-        <Store :size="20" :stroke-width="1.8" />
+        <Store
+          :size="20"
+          :stroke-width="1.8"
+        />
         <span>Restaurantes</span>
       </RouterLink>
+
       <RouterLink
         to="/restaurante/productos"
         class="sidebar__link"
       >
-        <Package :size="20" :stroke-width="1.8" />
+        <Package
+          :size="20"
+          :stroke-width="1.8"
+        />
+
         <span>Productos</span>
       </RouterLink>
 
@@ -30,7 +42,11 @@
         to="/restaurante/pedidos"
         class="sidebar__link"
       >
-        <ClipboardList :size="20" :stroke-width="1.8" />
+        <ClipboardList
+          :size="20"
+          :stroke-width="1.8"
+        />
+
         <span>Pedidos</span>
       </RouterLink>
 
@@ -38,16 +54,23 @@
         to="/restaurante/reviews"
         class="sidebar__link"
       >
-        <Star :size="20" :stroke-width="1.8" />
+        <Star
+          :size="20"
+          :stroke-width="1.8"
+        />
+
         <span>Reseñas</span>
       </RouterLink>
 
-    
       <RouterLink
+        v-if="esAdministrador"
         to="/restaurante/usuarios"
         class="sidebar__link"
       >
-        <Users :size="20" :stroke-width="1.8" />
+        <Users
+          :size="20"
+          :stroke-width="1.8"
+        />
         <span>Usuarios</span>
       </RouterLink>
 
@@ -55,19 +78,34 @@
         to="/restaurante/perfil"
         class="sidebar__link"
       >
-        <UserRound :size="20" :stroke-width="1.8" />
+        <UserRound
+          :size="20"
+          :stroke-width="1.8"
+        />
+
         <span>Perfil</span>
       </RouterLink>
     </nav>
 
-    <button class="sidebar__logout" type="button">
-      <LogOut :size="20" :stroke-width="1.8" />
+    <button
+      class="sidebar__logout"
+      type="button"
+      @click="cerrarSesion"
+    >
+      <LogOut
+        :size="20"
+        :stroke-width="1.8"
+      />
+
       <span>Cerrar sesión</span>
     </button>
   </aside>
 </template>
 
 <script setup>
+import { useRouter } from "vue-router";
+import { computed } from "vue";
+
 import {
   ClipboardList,
   LogOut,
@@ -77,6 +115,31 @@ import {
   UserRound,
   Users
 } from "lucide-vue-next";
+
+import { useUsuarioStore } from "../../stores/UsuarioStore";
+import { useRestauranteStore } from "../../stores/RestauranteStore";
+
+const router = useRouter();
+
+const usuarioStore = useUsuarioStore();
+const restauranteStore = useRestauranteStore();
+const esAdministrador = computed(() => {
+  return usuarioStore.usuario?.rol === "RESTAURANTE";
+});
+
+function cerrarSesion() {
+  usuarioStore.cerrarSesion();
+
+  restauranteStore.limpiarRestauranteActivo();
+
+  localStorage.removeItem("usuario");
+  localStorage.removeItem("usuario_id");
+  localStorage.removeItem("tipo_usuario");
+  localStorage.removeItem("nombre");
+  localStorage.removeItem("id_cliente_temporal");
+
+  router.replace("/login");
+}
 </script>
 
 <style scoped>
@@ -87,7 +150,11 @@ import {
   width: 234px;
   flex-direction: column;
   padding: 24px 16px 20px;
-  background: linear-gradient(180deg, #0b5635 0%, #08472d 100%);
+  background: linear-gradient(
+    180deg,
+    #0b5635 0%,
+    #08472d 100%
+  );
   color: #ffffff;
 }
 

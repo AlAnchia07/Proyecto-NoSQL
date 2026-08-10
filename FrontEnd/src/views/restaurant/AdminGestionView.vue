@@ -4,6 +4,8 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import { UserPlus, Edit, Trash2, X } from 'lucide-vue-next'
+import { useUsuarioStore } from "@/stores/UsuarioStore";
+import { getRestaurantesPorUsuario } from "@/services/restauranteService";
 
 // Estados principales
 const empleados = ref([])
@@ -11,6 +13,7 @@ const restaurantes = ref([])
 const loading = ref(false)
 const error = ref('')
 const mensajeExito = ref('')
+const usuarioStore = useUsuarioStore();
 
 // Estado del Modal (Crear / Editar)
 const showModal = ref(false)
@@ -48,10 +51,30 @@ const cargarEmpleados = async () => {
 
 const cargarRestaurantes = async () => {
   try {
-    const res = await axios.get('http://localhost:5000/api/restaurantes')
-    restaurantes.value = res.data
+    const idUsuario = usuarioStore.usuario?._id
+
+    if (!idUsuario) {
+      throw new Error(
+        'No se pudo identificar al administrador actual.'
+      )
+    }
+
+    const data = await getRestaurantesPorUsuario(
+      idUsuario
+    )
+
+    restaurantes.value =
+      Array.isArray(data) ? data : []
   } catch (err) {
-    console.error('Error al cargar restaurantes:', err)
+    console.error(
+      'Error al cargar restaurantes:',
+      err
+    )
+
+    error.value =
+      err.response?.data?.mensaje ||
+      err.message ||
+      'No fue posible cargar los restaurantes.'
   }
 }
 
@@ -134,6 +157,7 @@ const eliminarEmpleado = async (id) => {
     error.value = 'Error al eliminar el empleado.'
   }
 }
+
 </script>
 
 <template>
@@ -218,8 +242,15 @@ const eliminarEmpleado = async (id) => {
           <div class="form-group">
             <label>Restaurante asignado</label>
             <select v-model="form.restaurante" required>
-              <option disabled value="">Seleccione un restaurante</option>
-              <option v-for="rest in restaurantes" :key="rest._id" :value="rest._id">
+              <option disabled value="">
+                Seleccione un restaurante
+              </option>
+
+              <option
+                v-for="rest in restaurantes"
+                :key="rest._id"
+                :value="rest._id"
+              >
                 {{ rest.nombre }} - {{ rest.direccion }}
               </option>
             </select>

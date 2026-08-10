@@ -4,9 +4,12 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { loginService } from '../../../services/authService'
 import { useUsuarioStore } from "@/stores/UsuarioStore";
+import { useRestauranteStore } from "@/stores/RestauranteStore";
+import { getRestaurantePorId } from "@/services/restauranteService";
 
 const router = useRouter()
 const usuarioStore = useUsuarioStore();
+const restauranteStore = useRestauranteStore();
 
 const form = ref({
   correo: '',
@@ -29,7 +32,8 @@ const handleLogin = async () => {
         _id: response.usuario_id,
         nombre: response.nombre,
         correo: response.correo,
-        rol: response.tipo_usuario
+        rol: response.tipo_usuario,
+        restaurante: response.restaurante || null
       },
       response.perfil
     );
@@ -43,14 +47,38 @@ const handleLogin = async () => {
     }
 
     // Redirigir según el rol del usuario en mayúsculas
-    const rol = (response.tipo_usuario || '').toUpperCase()
+    const rol = (response.tipo_usuario || "").toUpperCase();
 
-    if (rol === 'CLIENTE') {
-      router.push('/cliente/mis-pedidos')
-    } else if (rol === 'EMPLEADO' || rol === 'ADMIN' || rol === 'RESTAURANTE') {
-      router.push('/restaurante/pedidos')
+    restauranteStore.limpiarRestauranteActivo();
+
+    if (rol === "EMPLEADO") {
+      if (!response.restaurante) {
+        throw new Error(
+          "El empleado no tiene un restaurante asignado."
+        );
+      }
+
+      const restauranteAsignado =
+        await getRestaurantePorId(
+          response.restaurante
+        );
+
+      restauranteStore.seleccionarRestaurante(
+        restauranteAsignado
+      );
+    }
+
+    if (rol === "CLIENTE") {
+      router.push("/cliente");
+    } else if (rol === "EMPLEADO") {
+      router.push("/restaurante/productos");
+    } else if (
+      rol === "ADMIN" ||
+      rol === "RESTAURANTE"
+    ) {
+      router.push("/restaurante/restaurantes");
     } else {
-      router.push('/')
+      router.push("/");
     }
   } catch (err) {
     console.error("Error en login:", err)
