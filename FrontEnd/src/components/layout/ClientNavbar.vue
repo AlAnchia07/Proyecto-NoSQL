@@ -5,20 +5,27 @@
         <ShoppingBasket />
       </div>
 
-      <span>Bite<span class="client-navbar__brand-accent">Up</span></span>
+      <span>
+        Bite<span class="client-navbar__brand-accent">Up</span>
+      </span>
     </div>
 
     <div class="client-navbar__actions">
-      <NotificationBell 
+      <NotificationBell
         rutaNotificaciones="/cliente/notificaciones"
       />
 
-      <button type="button" class="client-navbar__profile">
+      <button
+        type="button"
+        class="client-navbar__profile"
+      >
         <div class="client-navbar__avatar">
-          S
+          {{ iniciales }}
         </div>
 
-        <span>Hola, Sofía</span>
+        <span>
+          Hola, {{ primerNombre }}
+        </span>
 
         <ChevronDown />
       </button>
@@ -27,11 +34,42 @@
 </template>
 
 <script setup>
+import { computed } from "vue";
+
 import {
   ChevronDown,
   ShoppingBasket
 } from "lucide-vue-next";
+
 import NotificationBell from "../notifications/NotificationBell.vue";
+import { useUsuarioStore } from "../../stores/UsuarioStore";
+
+const usuarioStore = useUsuarioStore();
+
+const nombreUsuario = computed(() => {
+  return usuarioStore.usuario?.nombre || "Usuario";
+});
+
+const primerNombre = computed(() => {
+  return nombreUsuario.value
+    .trim()
+    .split(" ")[0];
+});
+
+const iniciales = computed(() => {
+  const nombre = nombreUsuario.value.trim();
+
+  if (!nombre) {
+    return "U";
+  }
+
+  return nombre
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((parte) => parte[0].toUpperCase())
+    .join("");
+});
 </script>
 
 <style scoped>

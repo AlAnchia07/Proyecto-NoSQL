@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-
 const Restaurante = require("../models/Restaurante");
 const Usuario = require("../models/Usuario");
 const Categoria = require("../models/Categoria");
@@ -26,7 +25,9 @@ const validarCategoriaRestaurante = async (idCategoria) => {
   }
 
   if (categoria.estado !== "ACTIVA") {
-    throw new Error("La categoría seleccionada está inactiva.");
+    throw new Error(
+      "La categoría seleccionada está inactiva."
+    );
   }
 
   return categoria;
@@ -41,7 +42,7 @@ const validarUsuarioRestaurante = async (idUsuario) => {
     throw new Error("El usuario indicado no existe.");
   }
 
-  if (usuario.tipo_usuario !== "RESTAURANTE") {
+  if (usuario.rol !== "RESTAURANTE") {
     throw new Error(
       "El usuario indicado no pertenece al tipo RESTAURANTE."
     );
@@ -87,39 +88,67 @@ const crearRestaurante = async (datosRestaurante) => {
 // Listar restaurantes
 const obtenerRestaurantes = async () => {
   return await Restaurante.find()
-    .populate("id_categoria", "nombre tipo estado")
-    .populate("id_usuario", "correo_registro tipo_usuario")
+    .populate(
+      "id_categoria",
+      "nombre tipo estado"
+    )
+    .populate(
+      "id_usuario",
+      "nombre correo rol"
+    )
     .sort({
       createdAt: -1
     });
 };
 
 // Consultar restaurante por ID
-const obtenerRestaurantePorId = async (idRestaurante) => {
-  validarObjectId(idRestaurante, "El ID del restaurante");
+const obtenerRestaurantePorId = async (
+  idRestaurante
+) => {
+  validarObjectId(
+    idRestaurante,
+    "El ID del restaurante"
+  );
 
-  const restaurante = await Restaurante.findById(idRestaurante)
-    .populate("id_categoria", "nombre tipo estado")
-    .populate("id_usuario", "correo_registro tipo_usuario");
+  const restaurante =
+    await Restaurante.findById(idRestaurante)
+      .populate(
+        "id_categoria",
+        "nombre tipo estado"
+      )
+      .populate(
+        "id_usuario",
+        "nombre correo rol"
+      );
 
   if (!restaurante) {
-    throw new Error("Restaurante no encontrado.");
+    throw new Error(
+      "Restaurante no encontrado."
+    );
   }
 
   return restaurante;
 };
 
-// Consultar restaurante por usuario
-const obtenerRestaurantesPorUsuario = async (idUsuario) => {
-  validarObjectId(idUsuario, "El ID de usuario");
+// Consultar restaurantes por usuario
+const obtenerRestaurantesPorUsuario = async (
+  idUsuario
+) => {
+  validarObjectId(
+    idUsuario,
+    "El ID de usuario"
+  );
 
-  const usuario = await Usuario.findById(idUsuario);
+  const usuario =
+    await Usuario.findById(idUsuario);
 
   if (!usuario) {
-    throw new Error("El usuario indicado no existe.");
+    throw new Error(
+      "El usuario indicado no existe."
+    );
   }
 
-  if (usuario.tipo_usuario !== "RESTAURANTE") {
+  if (usuario.rol !== "RESTAURANTE") {
     throw new Error(
       "El usuario indicado no administra restaurantes."
     );
@@ -128,7 +157,10 @@ const obtenerRestaurantesPorUsuario = async (idUsuario) => {
   return await Restaurante.find({
     id_usuario: idUsuario
   })
-    .populate("id_categoria", "nombre tipo estado")
+    .populate(
+      "id_categoria",
+      "nombre tipo estado"
+    )
     .sort({
       createdAt: -1
     });
@@ -139,21 +171,29 @@ const editarRestaurante = async (
   idRestaurante,
   datosRestaurante
 ) => {
-  validarObjectId(idRestaurante, "El ID del restaurante");
-
-  const restauranteActual = await Restaurante.findById(
-    idRestaurante
+  validarObjectId(
+    idRestaurante,
+    "El ID del restaurante"
   );
 
+  const restauranteActual =
+    await Restaurante.findById(
+      idRestaurante
+    );
+
   if (!restauranteActual) {
-    throw new Error("Restaurante no encontrado.");
+    throw new Error(
+      "Restaurante no encontrado."
+    );
   }
 
-  // El usuario propietario no se cambia desde esta operación.
-  if (Object.prototype.hasOwnProperty.call(
-    datosRestaurante,
-    "id_usuario"
-  )) {
+  // El usuario propietario no se cambia
+  if (
+    Object.prototype.hasOwnProperty.call(
+      datosRestaurante,
+      "id_usuario"
+    )
+  ) {
     delete datosRestaurante.id_usuario;
   }
 
@@ -199,10 +239,13 @@ const editarRestaurante = async (
         runValidators: true
       }
     )
-      .populate("id_categoria", "nombre tipo estado")
+      .populate(
+        "id_categoria",
+        "nombre tipo estado"
+      )
       .populate(
         "id_usuario",
-        "correo_registro tipo_usuario"
+        "nombre correo rol"
       );
 
   return restauranteActualizado;

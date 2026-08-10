@@ -2,12 +2,12 @@
 import axios from "axios";
 import { API_URL } from "../config/api"; 
 
-const AUTH_URL = `${API_URL}/auth`; // Asegúrate de que coincida con la ruta base de tus rutas en el backend
+const AUTH_URL = `${API_URL}/auth`; 
 
 export async function registrarClienteService(datosCliente) {
   try {
     const response = await axios.post(
-      `${AUTH_URL}/register`, // Ajusta el endpoint final según cómo lo definiste en el backend (ej: /register o /registro)
+      `${AUTH_URL}/register`,
       datosCliente
     );
 
@@ -21,7 +21,7 @@ export async function registrarClienteService(datosCliente) {
 export async function loginService(credenciales) {
   try {
     const response = await axios.post(
-      `${AUTH_URL}/login`, // Ajusta el endpoint final según tu backend
+      `${AUTH_URL}/login`, 
       credenciales
     );
 

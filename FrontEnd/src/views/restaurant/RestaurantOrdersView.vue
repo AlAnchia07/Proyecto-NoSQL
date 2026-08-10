@@ -112,68 +112,110 @@
 
 <script setup>
 import { onMounted, ref } from "vue";
+
+import { useRestauranteStore } from "../../stores/RestauranteStore";
+
 import {
   cambiarEstadoPedido,
   getPedidosRestaurante
 } from "../../services/pedidoService";
 
+const restauranteStore = useRestauranteStore();
+
 const pedidos = ref([]);
 const loading = ref(true);
 const error = ref("");
-
-const idRestauranteTemporal = "6884a7d8e2d31d8c9b6a0002";
 
 async function cargarPedidos() {
   try {
     loading.value = true;
     error.value = "";
 
-    const resultado = await getPedidosRestaurante(
-      idRestauranteTemporal
-    );
+    if (!restauranteStore.hayRestauranteActivo) {
+      restauranteStore.cargarRestauranteGuardado();
+    }
+
+    const idRestaurante =
+      restauranteStore.idRestauranteActivo;
+
+    if (!idRestaurante) {
+      throw new Error(
+        "Selecciona primero el restaurante que deseas administrar."
+      );
+    }
+
+    const resultado =
+      await getPedidosRestaurante(idRestaurante);
 
     pedidos.value = resultado.map((pedido) => ({
       ...pedido,
       actualizando: false
     }));
   } catch (err) {
-    console.error(err);
-    error.value = "No fue posible cargar los pedidos.";
+    console.error(
+      "Error al cargar los pedidos:",
+      err
+    );
+
+    error.value =
+      err.message ||
+      "No fue posible cargar los pedidos.";
   } finally {
     loading.value = false;
   }
 }
 
-async function actualizarEstado(pedido, nuevoEstado) {
+async function actualizarEstado(
+  pedido,
+  nuevoEstado
+) {
   const estadoAnterior = pedido.estado;
 
   try {
     pedido.actualizando = true;
+    error.value = "";
 
-    const pedidoActualizado = await cambiarEstadoPedido(
-      pedido._id,
-      nuevoEstado
+    const pedidoActualizado =
+      await cambiarEstadoPedido(
+        pedido._id,
+        nuevoEstado
+      );
+
+    pedido.estado =
+      pedidoActualizado.estado;
+  } catch (err) {
+    console.error(
+      "Error al actualizar el estado del pedido:",
+      err
     );
 
-    pedido.estado = pedidoActualizado.estado;
-  } catch (err) {
-    console.error(err);
     pedido.estado = estadoAnterior;
-    error.value = "No fue posible actualizar el estado del pedido.";
+
+    error.value =
+      "No fue posible actualizar el estado del pedido.";
   } finally {
     pedido.actualizando = false;
   }
 }
 
 function formatearMonto(monto) {
-  return Number(monto || 0).toLocaleString("es-CR");
+  return Number(
+    monto || 0
+  ).toLocaleString("es-CR");
 }
 
 function formatearFecha(fecha) {
-  return new Date(fecha).toLocaleString("es-CR", {
-    dateStyle: "medium",
-    timeStyle: "short"
-  });
+  if (!fecha) {
+    return "Fecha no disponible";
+  }
+
+  return new Date(fecha).toLocaleString(
+    "es-CR",
+    {
+      dateStyle: "medium",
+      timeStyle: "short"
+    }
+  );
 }
 
 function formatearEstado(estado) {
@@ -191,17 +233,24 @@ function formatearEstado(estado) {
 function formatearEntrega(tipoEntrega) {
   const tipos = {
     RETIRO_EN_LOCAL: "Retiro en el local",
-    ENTREGA_A_DOMICILIO: "Entrega a domicilio"
+    EXPRESS: "Entrega express"
   };
 
   return tipos[tipoEntrega] || tipoEntrega;
 }
 
 function getEstadoClase(estado) {
+  if (!estado) {
+    return "";
+  }
+
   return `order-card__status--${estado.toLowerCase()}`;
 }
 
-onMounted(cargarPedidos);
+onMounted(() => {
+  restauranteStore.cargarRestauranteGuardado();
+  cargarPedidos();
+});
 </script>
 
 <style scoped>

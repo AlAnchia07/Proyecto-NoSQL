@@ -27,7 +27,9 @@ const handleLogin = async () => {
     usuarioStore.iniciarSesion(
       {
         _id: response.usuario_id,
-        rol: response.tipo_usuario,
+        nombre: response.nombre,
+        correo: response.correo,
+        rol: response.tipo_usuario
       },
       response.perfil
     );

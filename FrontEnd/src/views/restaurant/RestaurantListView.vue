@@ -299,6 +299,7 @@
 <script setup>
 import { onMounted, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
+
 import {
   Plus,
   Store,
@@ -316,14 +317,17 @@ import {
 } from "../../services/restauranteService";
 
 const router = useRouter();
+
 const usuarioStore = useUsuarioStore();
 const restauranteStore = useRestauranteStore();
 
 const restaurantes = ref([]);
 const categorias = ref([]);
+
 const loading = ref(true);
 const guardando = ref(false);
 const mostrarFormulario = ref(false);
+
 const error = ref("");
 const errorFormulario = ref("");
 const mensajeExito = ref("");
@@ -340,7 +344,9 @@ const formularioInicial = () => ({
   tipos_entrega: []
 });
 
-const formulario = reactive(formularioInicial());
+const formulario = reactive(
+  formularioInicial()
+);
 
 async function cargarDatos() {
   try {
@@ -348,37 +354,67 @@ async function cargarDatos() {
     error.value = "";
 
     if (!usuarioStore.usuario) {
-      usuarioStore.simularLoginAdministrador();
+      throw new Error(
+        "Debes iniciar sesión para administrar restaurantes."
+      );
     }
 
-    if (!usuarioStore.esAdministradorRestaurante) {
+    if (
+      usuarioStore.usuario.rol !==
+      "RESTAURANTE"
+    ) {
       throw new Error(
         "El usuario no tiene permisos para administrar restaurantes."
       );
     }
 
-    const [listaRestaurantes, listaCategorias] =
-      await Promise.all([
-        getRestaurantesPorUsuario(
-          usuarioStore.usuario._id
-        ),
-        getCategoriasPorTipo("RESTAURANTE")
-      ]);
+    const idUsuario =
+      usuarioStore.usuario._id;
 
-    restaurantes.value = listaRestaurantes;
-    categorias.value = listaCategorias;
+    if (!idUsuario) {
+      throw new Error(
+        "No se pudo identificar el usuario actual."
+      );
+    }
+
+    const [
+      listaRestaurantes,
+      listaCategorias
+    ] = await Promise.all([
+      getRestaurantesPorUsuario(
+        idUsuario
+      ),
+      getCategoriasPorTipo(
+        "RESTAURANTE"
+      )
+    ]);
+
+    restaurantes.value =
+      Array.isArray(listaRestaurantes)
+        ? listaRestaurantes
+        : [];
+
+    categorias.value =
+      Array.isArray(listaCategorias)
+        ? listaCategorias
+        : [];
   } catch (err) {
-    error.value = obtenerMensajeError(
-      err,
-      "No fue posible cargar los restaurantes."
+    console.error(
+      "Error al cargar restaurantes:",
+      err
     );
+
+    error.value =
+      obtenerMensajeError(
+        err,
+        "No fue posible cargar los restaurantes."
+      );
   } finally {
     loading.value = false;
   }
 }
 
 function abrirCreacion() {
-
   Object.assign(
     formulario,
     formularioInicial()
@@ -388,7 +424,9 @@ function abrirCreacion() {
   mostrarFormulario.value = true;
 }
 
-function irAEditarRestaurante(restaurante) {
+function irAEditarRestaurante(
+  restaurante
+) {
   router.push({
     name: "restaurant-edit",
     params: {
@@ -412,59 +450,109 @@ async function guardarRestaurante() {
     errorFormulario.value = "";
     mensajeExito.value = "";
 
-    if (formulario.tipos_entrega.length === 0) {
+    if (!usuarioStore.usuario?._id) {
+      throw new Error(
+        "No se pudo identificar el usuario actual."
+      );
+    }
+
+    if (
+      usuarioStore.usuario.rol !==
+      "RESTAURANTE"
+    ) {
+      throw new Error(
+        "El usuario no tiene permisos para crear restaurantes."
+      );
+    }
+
+    if (
+      formulario.tipos_entrega.length === 0
+    ) {
       throw new Error(
         "Selecciona al menos un tipo de entrega."
       );
     }
 
     const datosRestaurante = {
-      id_categoria: formulario.id_categoria,
-      nombre: formulario.nombre,
-      direccion: formulario.direccion,
+      id_usuario:
+        usuarioStore.usuario._id,
+
+      id_categoria:
+        formulario.id_categoria,
+
+      nombre:
+        formulario.nombre,
+
+      direccion:
+        formulario.direccion,
+
       correo_contacto:
         formulario.correo_contacto,
-      telefonos: [formulario.telefono],
+
+      telefonos: [
+        formulario.telefono
+      ],
+
       ubicacion: {
         type: "Point",
         coordinates: [
-          Number(formulario.longitud),
-          Number(formulario.latitud)
+          Number(
+            formulario.longitud
+          ),
+          Number(
+            formulario.latitud
+          )
         ]
       },
-      url_imagen: formulario.url_imagen,
-      tipos_entrega: formulario.tipos_entrega
+
+      url_imagen:
+        formulario.url_imagen,
+
+      tipos_entrega:
+        formulario.tipos_entrega
     };
 
-      await crearRestaurante({
-        ...datosRestaurante,
-        id_usuario: usuarioStore.usuario._id
-      });
+    await crearRestaurante(
+      datosRestaurante
+    );
 
-      mensajeExito.value =
-        "Restaurante creado correctamente.";
+    mensajeExito.value =
+      "Restaurante creado correctamente.";
 
     cerrarFormulario();
+
     await cargarDatos();
   } catch (err) {
-    errorFormulario.value = obtenerMensajeError(
-      err,
-      "No fue posible guardar el restaurante."
+    console.error(
+      "Error al guardar restaurante:",
+      err
     );
+
+    errorFormulario.value =
+      obtenerMensajeError(
+        err,
+        "No fue posible guardar el restaurante."
+      );
   } finally {
     guardando.value = false;
   }
 }
 
-function seleccionarRestaurante(restaurante) {
+function seleccionarRestaurante(
+  restaurante
+) {
   restauranteStore.seleccionarRestaurante(
     restaurante
   );
 
-  router.push("/restaurante/perfil");
+  router.push(
+    "/restaurante/perfil"
+  );
 }
 
-function formatearEstado(estado) {
+function formatearEstado(
+  estado
+) {
   const estados = {
     ACTIVO: "Activo",
     INACTIVO: "Inactivo",
