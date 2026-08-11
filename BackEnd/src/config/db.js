@@ -1,16 +1,19 @@
-// src/config/db.js
-const mongoose = require('mongoose');
- 
- 
+const mongoose = require("mongoose");
+
 const connectDB = async () => {
   try {
-    await mongoose.connect('mongodb://admin:password_123@localhost:27017/Simulacion2?authSource=admin', { //Aqui hay que cambiar la ruta
-    });
-    console.log('MongoDB connected');
+    const mongoUri =
+      process.env.MONGODB_URI; 
+      //"mongodb://localhost:27017/BiteUp"
+
+    await mongoose.connect(mongoUri);
+
+    console.log("MongoDB connected");
+    console.log("Base:", mongoose.connection.name);
   } catch (err) {
     console.error(err.message);
     process.exit(1);
   }
 };
- 
+
 module.exports = connectDB;
