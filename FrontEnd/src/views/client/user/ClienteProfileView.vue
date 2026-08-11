@@ -76,14 +76,13 @@ onMounted(() => {
 <template>
   <div class="admin-profile-view">
     <div class="profile-header">
-      <h2>Mi Perfil de Administrador</h2>
+      <h2>Mi Perfil</h2>
       <p>Administra la información de tu cuenta y credenciales de acceso.</p>
     </div>
 
     <div v-if="cargando" class="loading-state">Cargando perfil...</div>
 
     <div v-else class="profile-container">
-      <!-- Tarjeta de Información General -->
       <div class="profile-card info-card">
         <div class="avatar-section">
           <div class="avatar-placeholder">
@@ -111,7 +110,6 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Tarjeta de Edición / Formulario -->
       <div class="profile-card form-card">
         <h3>Editar Datos</h3>
 
@@ -326,8 +324,9 @@ onMounted(() => {
 }
 
 .btn-primary:hover {
-  background-color: #14342a;  
+  background-color: #14342a;
 }
+
 .alert {
   display: flex;
   align-items: center;

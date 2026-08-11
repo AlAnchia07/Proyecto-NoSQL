@@ -31,7 +31,7 @@ const handleLogin = async () => {
       localStorage.setItem('token', response.token);
     }
 
-    //Se van a guardar los datos tambien en el usuarioStore
+    
     usuarioStore.iniciarSesion(
       {
         _id: response.usuario_id,
@@ -44,14 +44,14 @@ const handleLogin = async () => {
     );
 
 
-    // Guardar información básica de sesión en localStorage
+    
     localStorage.setItem('usuario_id', response.usuario_id)
     localStorage.setItem('tipo_usuario', response.tipo_usuario)
     if (response.nombre) {
       localStorage.setItem('nombre', response.nombre)
     }
 
-    // Redirigir según el rol del usuario en mayúsculas
+    
     const rol = (response.tipo_usuario || "").toUpperCase();
 
     restauranteStore.limpiarRestauranteActivo();

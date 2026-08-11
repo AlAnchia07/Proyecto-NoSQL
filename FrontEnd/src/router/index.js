@@ -24,6 +24,7 @@ import RestaurantReviewsView from "@/views/restaurant/RestaurantReviewsView.vue"
 import LoginView from "../views/client/auth/LoginView.vue";
 import RegisterView from "../views/client/auth/RegisterView.vue";
 import FavoritesClient from "@/views/client/favorites/FavoritesClient.vue";
+import ClienteProfileView from "@/views/client/user/ClienteProfileView.vue";
 
 const router = createRouter({
   history: createWebHistory(
@@ -96,6 +97,12 @@ const router = createRouter({
           path: "favoritos",
           name: "favoritos",
           component: FavoritesClient
+        },
+
+        {
+          path: "perfil",
+          name: "client-profile",
+          component: ClienteProfileView
         }
       ]
     },

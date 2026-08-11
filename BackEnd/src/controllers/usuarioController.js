@@ -1,9 +1,8 @@
 
-// src/controllers/usuarioController.js
 const Usuario = require('../models/Usuario');
 const bcrypt = require('bcrypt');
 
-// Obtener todos los usuarios (para que el frontend filtre los de rol EMPLEADO)
+
 async function obtenerUsuarios(req, res) {
   try {
     const usuarios = await Usuario.find().populate('restaurante', 'nombre direccion');
@@ -14,7 +13,6 @@ async function obtenerUsuarios(req, res) {
   }
 }
 
-// Obtener el perfil del usuario autenticado actual
 async function obtenerPerfil(req, res) {
   try {
     const usuarioId = req.usuario?.id || req.usuarioId;
@@ -34,7 +32,6 @@ async function obtenerPerfil(req, res) {
   }
 }
 
-// Actualizar el perfil del usuario autenticado actual
 async function actualizarPerfil(req, res) {
   try {
     const usuarioId = req.usuario?.id || req.usuarioId;
@@ -70,7 +67,7 @@ async function actualizarPerfil(req, res) {
   }
 }
 
-// Actualizar un usuario (datos o reasignación de restaurante)
+// Actualizar un usuario
 async function actualizarUsuario(req, res) {
   try {
     const { id } = req.params;

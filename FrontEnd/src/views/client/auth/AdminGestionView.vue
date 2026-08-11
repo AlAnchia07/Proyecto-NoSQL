@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { obtenerUsuariosService, actualizarUsuarioService, eliminarUsuarioService } from '@/services/usuarioService'
-import { registrarClienteService } from '@/services/authService' // O el servicio que uses para crear cuentas
+import { registrarClienteService } from '@/services/authService' 
 import { Plus, Edit, Trash2, X, Building, User, Mail, Lock } from 'lucide-vue-next'
 
 // Estados reactivos
@@ -24,12 +24,11 @@ const form = ref({
   restaurante: ''
 })
 
-// Cargar empleados al montar la vista
 const cargarEmpleados = async () => {
   try {
     loading.value = true
     const data = await obtenerUsuariosService()
-    // Filtramos solo los que tienen el rol EMPLEADO
+    
     empleados.value = data.filter(u => (u.rol || '').toUpperCase() === 'EMPLEADO')
   } catch (err) {
     error.value = err.mensaje || 'Error al cargar la lista de empleados.'
@@ -46,21 +45,21 @@ const abrirModalCrear = () => {
   mostrarModal.value = true
 }
 
-// Abrir modal para editar
+
 const abrirModalEditar = (empleado) => {
   modoEdicion.value = true
   idUsuarioActual.value = empleado._id
   form.value = {
     nombre: empleado.nombre,
     correo: empleado.correo,
-    contrasena: '', // Vacía por seguridad, solo se cambia si escriben una nueva
+    contrasena: '', 
     rol: empleado.rol,
     restaurante: empleado.restaurante?._id || empleado.restaurante || ''
   }
   mostrarModal.value = true
 }
 
-// Guardar (Crear o Actualizar)
+
 const guardarEmpleado = async () => {
   try {
     error.value = ''
@@ -81,7 +80,7 @@ const guardarEmpleado = async () => {
   }
 }
 
-// Eliminar empleado
+
 const eliminarEmpleado = async (id) => {
   if (!confirm('¿Estás seguro de que deseas eliminar este empleado?')) return
 
@@ -109,7 +108,7 @@ onMounted(() => {
       </button>
     </div>
 
-    <!-- Mensajes de feedback -->
+  
     <div v-if="error" class="alert alert-error">{{ error }}</div>
     <div v-if="mensajeExito" class="alert alert-success">{{ mensajeExito }}</div>
 
@@ -146,7 +145,7 @@ onMounted(() => {
       </table>
     </div>
 
-    <!-- Modal Formulario -->
+    
     <div v-if="mostrarModal" class="modal-overlay">
       <div class="modal-content">
         <div class="modal-header">

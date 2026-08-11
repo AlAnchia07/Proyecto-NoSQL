@@ -9,7 +9,7 @@ const form = ref({
   nombre: '',
   correo: '',
   contrasena: '',
-  rol: 'CLIENTE', // Por defecto Cliente
+  rol: 'CLIENTE', 
   restaurante: null
 })
 
@@ -76,7 +76,7 @@ const handleRegister = async () => {
           </select>
         </div>
 
-        <!-- Campo condicional si es Empleado (según la tabla requiere ID de restaurante) -->
+        
         <div class="form-group" v-if="form.rol === 'EMPLEADO'">
           <label for="restaurante">ID Restaurante (Solo empleado)</label>
           <input type="text" id="restaurante" v-model="form.restaurante" placeholder="Ej. ID del restaurante" />
