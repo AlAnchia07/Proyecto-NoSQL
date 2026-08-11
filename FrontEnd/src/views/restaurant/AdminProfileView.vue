@@ -208,8 +208,8 @@ onMounted(() => {
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background-color: #eff6ff;
-  color: #2563eb;
+  background-color: #e8f5e9;  
+  color: #1b4332;             
   display: flex;
   align-items: center;
   justify-content: center;
@@ -226,8 +226,8 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  background-color: #dbeafe;
-  color: #1e40af;
+  background-color: #d1e7dd;  
+  color: #1b4332;             
   padding: 0.2rem 0.8rem;
   border-radius: 20px;
   font-size: 0.75rem;
@@ -314,7 +314,7 @@ onMounted(() => {
 }
 
 .btn-primary {
-  background-color: #2563eb;
+  background-color: #1b4332;
   color: white;
   padding: 0.7rem;
   border-radius: 6px;
@@ -326,9 +326,8 @@ onMounted(() => {
 }
 
 .btn-primary:hover {
-  background-color: #1d4ed8;
+  background-color: #14342a;  /* antes: #1d4ed8 */
 }
-
 .alert {
   display: flex;
   align-items: center;

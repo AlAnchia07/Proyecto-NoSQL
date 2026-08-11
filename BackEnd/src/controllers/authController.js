@@ -1,5 +1,6 @@
 // src/controllers/authController.js
 const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
 const Usuario = require('../models/Usuario')
 const Cliente = require('../models/Cliente')
 
@@ -7,17 +8,14 @@ async function registrarUsuario(req, res) {
   try {
     const { nombre, correo, contrasena, rol, restaurante } = req.body;
 
-    
     const usuarioExistente = await Usuario.findOne({ correo });
     if (usuarioExistente) {
       return res.status(400).json({ mensaje: 'El correo electrónico ya está registrado.' });
     }
 
-    
     const salt = await bcrypt.genSalt(10);
     const contrasenaHasheada = await bcrypt.hash(contrasena, salt);
 
-    // 3. Crear el nuevo usuario con todos los campos de la tabla unificada
     const nuevoUsuario = new Usuario({
       nombre,
       correo,
@@ -28,7 +26,6 @@ async function registrarUsuario(req, res) {
 
     await nuevoUsuario.save();
 
-    //Aqui estoy agregando que si es de tipo usuario "CLIENTE" debe crearse un cliente asociado a la cuenta
     if (rol === "CLIENTE") {
       const nuevoCliente = new Cliente({
           id_usuario: nuevoUsuario._id
@@ -52,10 +49,6 @@ async function registrarUsuario(req, res) {
   }
 }
 
-module.exports = {
-  registrarUsuario
-};
-
 async function login(req, res) {
   try {
     const { correo, contrasena } = req.body
@@ -75,8 +68,15 @@ async function login(req, res) {
       perfil = await Cliente.findOne({ id_usuario: usuario._id })
     }
 
+    const token = jwt.sign(
+      { id: usuario._id, rol: usuario.rol },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
+    )
+
     return res.status(200).json({
       mensaje: "Inicio de sesión exitoso",
+      token,
       tipo_usuario: usuario.rol,
       usuario_id: usuario._id,
       nombre: usuario.nombre,

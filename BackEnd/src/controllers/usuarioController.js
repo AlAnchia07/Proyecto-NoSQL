@@ -17,7 +17,6 @@ async function obtenerUsuarios(req, res) {
 // Obtener el perfil del usuario autenticado actual
 async function obtenerPerfil(req, res) {
   try {
-    // Nota: Asegúrate de que tu middleware de auth inyecte el ID en req.usuario.id o req.usuarioId
     const usuarioId = req.usuario?.id || req.usuarioId;
     
     const usuario = await Usuario.findById(usuarioId)
@@ -46,7 +45,6 @@ async function actualizarPerfil(req, res) {
       correo
     };
 
-    // Si mandan nueva contraseña, la hasheamos
     if (contrasena && contrasena.trim() !== '') {
       const salt = await bcrypt.genSalt(10);
       datosActualizados.contrasena = await bcrypt.hash(contrasena, salt);
