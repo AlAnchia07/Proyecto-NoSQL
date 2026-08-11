@@ -84,3 +84,20 @@ export async function desactivarProducto(idProducto) {
     throw error;
   }
 }
+
+export async function reactivarProducto(idProducto) {
+  try {
+    const response = await axios.patch(
+      `${PRODUCTOS_URL}/${idProducto}/reactivar`
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Error al reactivar el producto:",
+      error
+    );
+
+    throw error;
+  }
+}

@@ -38,14 +38,7 @@ const productoSchema = new mongoose.Schema(
     precio_descuento: {
       type: Number,
       required: [true, "El precio con descuento es obligatorio."],
-      min: [0, "El precio con descuento no puede ser negativo."],
-      validate: {
-        validator: function (precio) {
-          return precio <= this.precio_original;
-        },
-        message:
-          "El precio con descuento no puede superar el precio original."
-      }
+      min: [0, "El precio con descuento no puede ser negativo."]
     },
 
     cantidad_disponible: {

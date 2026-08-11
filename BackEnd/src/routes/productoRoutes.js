@@ -36,4 +36,9 @@ router.patch(
   productoController.eliminarProductoLogicamente
 );
 
+router.patch(
+  "/:id/reactivar",
+  productoController.reactivarProducto
+);
+
 module.exports = router;
