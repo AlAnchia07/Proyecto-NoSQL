@@ -54,6 +54,12 @@ const obtenerProductosPorRestaurante = async (
     const incluirInactivos =
       req.query.incluirInactivos === "true";
 
+    console.log(
+      "incluirInactivos recibido:",
+      req.query.incluirInactivos,
+      incluirInactivos
+    );
+
     const productos =
       await productoService.obtenerProductosPorRestaurante(
         req.params.idRestaurante,
@@ -108,11 +114,30 @@ const eliminarProductoLogicamente = async (
   }
 };
 
+const reactivarProducto = async (req, res) => {
+  try {
+    const producto =
+      await productoService.reactivarProducto(
+        req.params.id
+      );
+
+    res.json({
+      mensaje: "Producto reactivado correctamente.",
+      producto
+    });
+  } catch (error) {
+    res.status(400).json({
+      mensaje: error.message
+    });
+  }
+};
+
 module.exports = {
   crearProducto,
   obtenerProductos,
   obtenerProductoPorId,
   obtenerProductosPorRestaurante,
   editarProducto,
-  eliminarProductoLogicamente
+  eliminarProductoLogicamente,
+  reactivarProducto
 };

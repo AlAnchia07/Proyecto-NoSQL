@@ -9,6 +9,41 @@ const validarObjectId = (id, nombreCampo) => {
   }
 };
 
+const validarUbicacion = (ubicacion) => {
+  if (
+    !ubicacion ||
+    !Array.isArray(ubicacion.coordinates) ||
+    ubicacion.coordinates.length !== 2
+  ) {
+    throw new Error(
+      "Debes indicar una longitud y una latitud válidas."
+    );
+  }
+
+  const [longitud, latitud] =
+    ubicacion.coordinates.map(Number);
+
+  if (
+    !Number.isFinite(longitud) ||
+    longitud < -180 ||
+    longitud > 180
+  ) {
+    throw new Error(
+      "La longitud debe estar entre -180 y 180."
+    );
+  }
+
+  if (
+    !Number.isFinite(latitud) ||
+    latitud < -90 ||
+    latitud > 90
+  ) {
+    throw new Error(
+      "La latitud debe estar entre -90 y 90."
+    );
+  }
+};
+
 const validarCategoriaRestaurante = async (idCategoria) => {
   validarObjectId(idCategoria, "El ID de categoría");
 
@@ -68,6 +103,8 @@ const crearRestaurante = async (datosRestaurante) => {
 
   await validarUsuarioRestaurante(id_usuario);
   await validarCategoriaRestaurante(id_categoria);
+
+  validarUbicacion(ubicacion);
 
   const nuevoRestaurante = new Restaurante({
     id_usuario,
@@ -201,6 +238,10 @@ const editarRestaurante = async (
     await validarCategoriaRestaurante(
       datosRestaurante.id_categoria
     );
+  }
+
+  if (datosRestaurante.ubicacion) {
+    validarUbicacion(datosRestaurante.ubicacion);
   }
 
   const camposPermitidos = [

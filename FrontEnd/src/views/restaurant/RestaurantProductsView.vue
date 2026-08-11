@@ -129,9 +129,17 @@
 
             <span
               class="product-card__status"
-              :class="getEstadoClase(producto.estado)"
+              :class="
+                estaVencido(producto.fecha_vencimiento)
+                  ? 'product-card__status--vencido'
+                  : getEstadoClase(producto.estado)
+              "
             >
-              {{ formatearEstado(producto.estado) }}
+              {{
+                estaVencido(producto.fecha_vencimiento)
+                  ? "Vencido"
+                  : formatearEstado(producto.estado)
+              }}
             </span>
           </div>
 
@@ -191,12 +199,10 @@
               </button>
 
               <button
+                v-if="producto.estado !== 'INACTIVO'"
                 type="button"
                 class="delete-button"
-                :disabled="
-                  producto.estado === 'INACTIVO' ||
-                  producto.desactivando
-                "
+                :disabled="producto.desactivando"
                 @click="confirmarDesactivacion(producto)"
               >
                 <Trash2 :size="17" />
@@ -205,6 +211,20 @@
                   producto.desactivando
                     ? "Desactivando..."
                     : "Desactivar"
+                }}
+              </button>
+
+              <button
+                v-else
+                type="button"
+                class="reactivate-button"
+                :disabled="producto.reactivando"
+                @click="confirmarReactivacion(producto)"
+              >
+                {{
+                  producto.reactivando
+                    ? "Reactivando..."
+                    : "Reactivar"
                 }}
               </button>
             </div>
@@ -445,7 +465,8 @@ import {
   crearProducto,
   desactivarProducto,
   editarProducto,
-  getProductosPorRestaurante
+  getProductosPorRestaurante,
+  reactivarProducto
 } from "../../services/productoService";
 
 const restauranteStore = useRestauranteStore();
@@ -523,6 +544,21 @@ async function cargarDatos() {
 }
 
 async function cargarProductos() {
+
+  const respuesta =
+  await getProductosPorRestaurante(
+    restauranteStore.idRestauranteActivo,
+    true
+  );
+
+  console.log("Productos recibidos:", respuesta);
+
+  productos.value = respuesta.map((producto) => ({
+    ...producto,
+    desactivando: false,
+    reactivando: false
+  }));
+
   if (!restauranteStore.idRestauranteActivo) {
     productos.value = [];
     return;
@@ -540,7 +576,8 @@ async function cargarProductos() {
 
     productos.value = respuesta.map((producto) => ({
       ...producto,
-      desactivando: false
+      desactivando: false,
+      reactivando: false
     }));
   } catch (err) {
     console.error(err);
@@ -551,6 +588,38 @@ async function cargarProductos() {
     );
   } finally {
     loading.value = false;
+  }
+}
+
+async function confirmarReactivacion(producto) {
+  const confirmado = window.confirm(
+    `¿Deseas reactivar el producto "${producto.nombre}"?`
+  );
+
+  if (!confirmado) {
+    return;
+  }
+
+  try {
+    producto.reactivando = true;
+    error.value = "";
+    mensajeExito.value = "";
+
+    await reactivarProducto(producto._id);
+
+    mensajeExito.value =
+      "Producto reactivado correctamente.";
+
+    await cargarProductos();
+  } catch (err) {
+    console.error(err);
+
+    error.value = obtenerMensajeError(
+      err,
+      "No fue posible reactivar el producto."
+    );
+  } finally {
+    producto.reactivando = false;
   }
 }
 
@@ -567,6 +636,15 @@ async function cargarCategorias() {
     );
   }
 }
+
+function estaVencido(fechaVencimiento) {
+  if (!fechaVencimiento) {
+    return false;
+  }
+
+  return new Date(fechaVencimiento) < new Date();
+}
+
 
 function abrirFormularioCrear() {
   if (!restauranteStore.idRestauranteActivo) {
@@ -1266,6 +1344,22 @@ onMounted(cargarDatos);
 
 .products-empty-state .primary-button {
   text-decoration: none;
+}
+
+.product-card__status--vencido {
+  background-color: #fde8e8;
+  color: #b42318;
+}
+
+.reactivate-button {
+  min-height: 39px;
+  flex: 1;
+  border: none;
+  border-radius: 9px;
+  background-color: #e8f5ec;
+  color: #146c37;
+  font-weight: 650;
+  cursor: pointer;
 }
 
 @media (max-width: 760px) {

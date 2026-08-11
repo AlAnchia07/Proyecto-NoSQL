@@ -207,6 +207,8 @@
               id="longitud"
               v-model.number="formulario.longitud"
               type="number"
+              min="-180"
+              max="180"
               step="any"
               required
             />
@@ -219,6 +221,8 @@
               id="latitud"
               v-model.number="formulario.latitud"
               type="number"
+              min="-90"
+              max="90"
               step="any"
               required
             />
@@ -254,16 +258,58 @@
               />
               Express
             </label>
-
-            <label>
-              <input
-                v-model="formulario.tipos_entrega"
-                type="checkbox"
-                value="ENTREGA_PROPIA"
-              />
-              Entrega propia
-            </label>
           </fieldset>
+
+          <div class="schedule-section form-field--full">
+            <div class="schedule-section__heading">
+              <h3>Horario</h3>
+
+              <p>
+                Indica la hora de apertura y cierre para cada día.
+                Puedes dejar un día vacío si el restaurante permanece cerrado.
+              </p>
+            </div>
+
+            <div class="schedule-list">
+              <div
+                v-for="dia in diasSemana"
+                :key="dia.clave"
+                class="schedule-row"
+              >
+                <strong>
+                  {{ dia.etiqueta }}
+                </strong>
+
+                <div class="schedule-time">
+                  <label :for="`${dia.clave}-apertura`">
+                    Apertura
+                  </label>
+
+                  <input
+                    :id="`${dia.clave}-apertura`"
+                    v-model="
+                      formulario.horario[dia.clave].apertura
+                    "
+                    type="time"
+                  />
+                </div>
+
+                <div class="schedule-time">
+                  <label :for="`${dia.clave}-cierre`">
+                    Cierre
+                  </label>
+
+                  <input
+                    :id="`${dia.clave}-cierre`"
+                    v-model="
+                      formulario.horario[dia.clave].cierre
+                    "
+                    type="time"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
 
           <div
             v-if="errorFormulario"
@@ -332,6 +378,69 @@ const error = ref("");
 const errorFormulario = ref("");
 const mensajeExito = ref("");
 
+const crearHorarioInicial = () => ({
+      lunes: {
+        apertura: "",
+        cierre: ""
+      },
+      martes: {
+        apertura: "",
+        cierre: ""
+      },
+      miercoles: {
+        apertura: "",
+        cierre: ""
+      },
+      jueves: {
+        apertura: "",
+        cierre: ""
+      },
+      viernes: {
+        apertura: "",
+        cierre: ""
+      },
+      sabado: {
+        apertura: "",
+        cierre: ""
+      },
+      domingo: {
+        apertura: "",
+        cierre: ""
+      }
+    });
+
+const diasSemana = [
+  {
+    clave: "lunes",
+    etiqueta: "Lunes"
+  },
+  {
+    clave: "martes",
+    etiqueta: "Martes"
+  },
+  {
+    clave: "miercoles",
+    etiqueta: "Miércoles"
+  },
+  {
+    clave: "jueves",
+    etiqueta: "Jueves"
+  },
+  {
+    clave: "viernes",
+    etiqueta: "Viernes"
+  },
+  {
+    clave: "sabado",
+    etiqueta: "Sábado"
+  },
+  {
+    clave: "domingo",
+    etiqueta: "Domingo"
+  }
+];
+
+
 const formularioInicial = () => ({
   nombre: "",
   id_categoria: "",
@@ -341,7 +450,8 @@ const formularioInicial = () => ({
   longitud: null,
   latitud: null,
   url_imagen: "",
-  tipos_entrega: []
+  tipos_entrega: [],
+  horario: crearHorarioInicial()
 });
 
 const formulario = reactive(
@@ -473,6 +583,54 @@ async function guardarRestaurante() {
       );
     }
 
+    const longitud = Number(formulario.longitud);
+    const latitud = Number(formulario.latitud);
+
+    if (
+      !Number.isFinite(longitud) ||
+      longitud < -180 ||
+      longitud > 180
+    ) {
+      throw new Error(
+        "La longitud debe estar entre -180 y 180."
+      );
+    }
+
+    if (
+      !Number.isFinite(latitud) ||
+      latitud < -90 ||
+      latitud > 90
+    ) {
+      throw new Error(
+        "La latitud debe estar entre -90 y 90."
+      );
+    }
+
+    Object.entries(formulario.horario).forEach(
+      ([dia, horarioDia]) => {
+        const tieneApertura =
+          Boolean(horarioDia.apertura);
+
+        const tieneCierre =
+          Boolean(horarioDia.cierre);
+
+        if (tieneApertura !== tieneCierre) {
+          throw new Error(
+            `Debes completar tanto la apertura como el cierre de ${dia}.`
+          );
+        }
+
+        if (
+          tieneApertura &&
+          horarioDia.cierre <= horarioDia.apertura
+        ) {
+          throw new Error(
+            `La hora de cierre de ${dia} debe ser posterior a la apertura.`
+          );
+        }
+      }
+    );
+
     const datosRestaurante = {
       id_usuario:
         usuarioStore.usuario._id,
@@ -496,12 +654,8 @@ async function guardarRestaurante() {
       ubicacion: {
         type: "Point",
         coordinates: [
-          Number(
-            formulario.longitud
-          ),
-          Number(
-            formulario.latitud
-          )
+          longitud,
+          latitud
         ]
       },
 
@@ -509,7 +663,9 @@ async function guardarRestaurante() {
         formulario.url_imagen,
 
       tipos_entrega:
-        formulario.tipos_entrega
+        formulario.tipos_entrega,
+
+      horario: formulario.horario,
     };
 
     await crearRestaurante(
@@ -519,7 +675,12 @@ async function guardarRestaurante() {
     mensajeExito.value =
       "Restaurante creado correctamente.";
 
-    cerrarFormulario();
+    mostrarFormulario.value = false;
+
+    Object.assign(
+      formulario,
+      formularioInicial()
+    );
 
     await cargarDatos();
   } catch (err) {
@@ -577,6 +738,9 @@ onMounted(cargarDatos);
 </script>
 
 <style scoped>
+
+
+
 .restaurants-view {
   width: 100%;
 }
@@ -795,6 +959,68 @@ onMounted(cargarDatos);
 .form-error {
   padding: 12px;
   border-radius: 9px;
+}
+
+.schedule-section {
+  padding-top: 6px;
+}
+
+.schedule-section__heading {
+  margin-bottom: 14px;
+}
+
+.schedule-section__heading h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.schedule-section__heading p {
+  margin: 5px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.schedule-list {
+  display: grid;
+  gap: 10px;
+}
+
+.schedule-row {
+  display: grid;
+  grid-template-columns:
+    minmax(110px, 0.7fr)
+    minmax(150px, 1fr)
+    minmax(150px, 1fr);
+  align-items: end;
+  gap: 16px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.schedule-row > strong {
+  align-self: center;
+}
+
+.schedule-time {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.schedule-time label {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.schedule-time input {
+  min-height: 40px;
+}
+
+@media (max-width: 700px) {
+  .schedule-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 700px) {

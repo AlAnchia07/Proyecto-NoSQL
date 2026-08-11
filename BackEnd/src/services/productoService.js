@@ -161,21 +161,16 @@ const obtenerProductosPorRestaurante = async (
   );
 
   const filtro = {
-    id_restaurante:
-      idRestaurante
+    id_restaurante: idRestaurante
   };
 
   if (!incluirInactivos) {
-    //Vista del cliente: solamente productos activos y con stock disponible
+    // Vista del cliente:
+    // solo productos activos y con stock disponible
     filtro.estado = "ACTIVO";
 
     filtro.cantidad_disponible = {
       $gt: 0
-    };
-  } else {
-    //Vista administrativa: muestra ACTIVO y AGOTADO, pero no productos eliminados logicamente
-    filtro.estado = {
-      $ne: "INACTIVO"
     };
   }
 
@@ -324,11 +319,38 @@ const eliminarProductoLogicamente = async (
   return producto;
 };
 
+const reactivarProducto = async (idProducto) => {
+  validarObjectId(idProducto, "El ID del producto");
+
+  const producto = await Producto.findById(idProducto);
+
+  if (!producto) {
+    throw new Error("Producto no encontrado.");
+  }
+
+  if (producto.estado !== "INACTIVO") {
+    throw new Error(
+      "El producto no se encuentra inactivo."
+    );
+  }
+
+  producto.estado =
+    producto.cantidad_disponible > 0
+      ? "ACTIVO"
+      : "AGOTADO";
+
+  await producto.save();
+
+  return producto;
+};
+
 module.exports = {
   crearProducto,
   obtenerProductos,
   obtenerProductoPorId,
   obtenerProductosPorRestaurante,
   editarProducto,
-  eliminarProductoLogicamente
+  eliminarProductoLogicamente,
+  reactivarProducto
 };
+
