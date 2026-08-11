@@ -25,7 +25,7 @@ const router = useRouter();
 const cartStore = useCartStore();
 const usuarioStore = useUsuarioStore();
 
-const metodoEntrega = ref("Retiro en el local");
+const metodoEntrega = ref("");
 const metodoPago = ref("Tarjeta");
 
 const procesandoPago = ref(false);
@@ -47,6 +47,30 @@ const datosSinpe = reactive({
 const restaurante = computed(() => cartStore.restaurante);
 const productos = computed(() => cartStore.productos);
 const subtotal = computed(() => cartStore.subtotal);
+
+const permiteRetiro = computed(() =>
+  restaurante.value?.tipos_entrega?.includes(
+    "RETIRO_EN_LOCAL"
+  )
+);
+
+const permiteExpress = computed(() =>
+  restaurante.value?.tipos_entrega?.includes(
+    "EXPRESS"
+  )
+);
+
+const inicializarMetodoEntrega = () => {
+  if (permiteRetiro.value) {
+    metodoEntrega.value = "Retiro en el local";
+  } else if (permiteExpress.value) {
+    metodoEntrega.value = "Express";
+  } else {
+    metodoEntrega.value = "";
+  }
+};
+
+inicializarMetodoEntrega();
 
 const costoEntrega = computed(() => {
   return metodoEntrega.value === "Express" ? 1500 : 0;
@@ -112,6 +136,20 @@ const validarCheckout = () => {
 
   if (!metodoEntrega.value) {
     return "Selecciona un método de entrega.";
+  }
+
+  if (
+  metodoEntrega.value === "Retiro en el local" &&
+  !permiteRetiro.value
+  ) {
+    return "Este restaurante no ofrece retiro en el local.";
+  }
+
+  if (
+    metodoEntrega.value === "Express" &&
+    !permiteExpress.value
+  ) {
+    return "Este restaurante no ofrece entrega express.";
   }
 
   if (!metodoPago.value) {
@@ -313,11 +351,11 @@ const volverAlRestaurante = () => {
 
             <div class="option-grid">
               <label
+                v-if="permiteRetiro"
                 class="selection-option"
                 :class="{
                   'selection-option--active':
-                    metodoEntrega ===
-                    'Retiro en el local'
+                    metodoEntrega === 'Retiro en el local'
                 }"
               >
                 <input
@@ -344,11 +382,11 @@ const volverAlRestaurante = () => {
               </label>
 
               <label
+                v-if="permiteExpress"
                 class="selection-option"
                 :class="{
                   'selection-option--active':
-                    metodoEntrega ===
-                    'Express'
+                    metodoEntrega === 'Express'
                 }"
               >
                 <input

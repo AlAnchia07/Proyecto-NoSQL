@@ -58,16 +58,30 @@ const restauranteSchema = new mongoose.Schema(
       coordinates: {
         type: [Number],
         required: [true, "Las coordenadas son obligatorias."],
+
         validate: {
           validator: function (coordinates) {
+            if (
+              !Array.isArray(coordinates) ||
+              coordinates.length !== 2
+            ) {
+              return false;
+            }
+
+            const [longitud, latitud] = coordinates;
+
             return (
-              Array.isArray(coordinates) &&
-              coordinates.length === 2 &&
-              coordinates.every((valor) => Number.isFinite(valor))
+              Number.isFinite(longitud) &&
+              Number.isFinite(latitud) &&
+              longitud >= -180 &&
+              longitud <= 180 &&
+              latitud >= -90 &&
+              latitud <= 90
             );
           },
+
           message:
-            "La ubicación debe contener longitud y latitud."
+            "La longitud debe estar entre -180 y 180 y la latitud entre -90 y 90."
         }
       }
     },
@@ -138,8 +152,7 @@ const restauranteSchema = new mongoose.Schema(
         type: String,
         enum: [
           "RETIRO_EN_LOCAL",
-          "EXPRESS",
-          "ENTREGA_PROPIA"
+          "EXPRESS"
         ]
       }
     ]

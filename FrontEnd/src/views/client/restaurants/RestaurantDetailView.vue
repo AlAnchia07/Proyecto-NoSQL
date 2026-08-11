@@ -35,6 +35,50 @@ const cart = computed(() => cartStore.productos);
 const loading = ref(true);
 const error = ref("");
 
+const restauranteAbierto = computed(() => {
+  if (!restaurant.value) {
+    return false;
+  }
+
+  if (restaurant.value.estado !== "ACTIVO") {
+    return false;
+  }
+
+  const ahora = new Date();
+
+  const dias = [
+    "domingo",
+    "lunes",
+    "martes",
+    "miercoles",
+    "jueves",
+    "viernes",
+    "sabado"
+  ];
+
+  const diaActual = dias[ahora.getDay()];
+
+  const horarioHoy =
+    restaurant.value.horario?.[diaActual];
+
+  if (
+    !horarioHoy?.apertura ||
+    !horarioHoy?.cierre
+  ) {
+    return false;
+  }
+
+  const horaActual =
+    `${String(ahora.getHours()).padStart(2, "0")}:${String(
+      ahora.getMinutes()
+    ).padStart(2, "0")}`;
+
+  return (
+    horaActual >= horarioHoy.apertura &&
+    horaActual < horarioHoy.cierre
+  );
+});
+
 const cargarDetalle = async () => {
   try {
     loading.value = true;
@@ -50,11 +94,20 @@ const cargarDetalle = async () => {
 
     restaurant.value = respuestaRestaurante;
     cartStore.seleccionarRestaurante(restaurant.value);
-    products.value = respuestaProductos;
+    const ahora = new Date();
 
-    if (!Array.isArray(products.value)) {
-      products.value = [];
-    }
+    products.value = Array.isArray(respuestaProductos)
+      ? respuestaProductos.filter((producto) => {
+          const fechaVencimiento =
+            new Date(producto.fecha_vencimiento);
+
+          return (
+            producto.estado === "ACTIVO" &&
+            Number(producto.cantidad_disponible) > 0 &&
+            fechaVencimiento > ahora
+          );
+        })
+      : [];
   } catch (err) {
     console.error("Error cargando el detalle:", err);
     error.value =
@@ -65,6 +118,10 @@ const cargarDetalle = async () => {
 };
 
 const addProduct = (product) => {
+  if (!restauranteAbierto.value) {
+    return;
+  }
+
   cartStore.agregarProducto(product);
 };
 
@@ -87,7 +144,10 @@ const formatCurrency = (amount) =>
   }).format(amount);
 
 const confirmOrder = () => {
-  if (cart.value.length === 0) {
+  if (
+    cart.value.length === 0 ||
+    !restauranteAbierto.value
+  ) {
     return;
   }
 
@@ -175,8 +235,14 @@ const cambiarFavorito = async () => {
                 <div class="restaurant-header__meta">
                   <span>{{ restaurant.direccion }}</span>
 
-                  <span class="restaurant-header__status">
-                    {{ restaurant.estado }}
+                  <span
+                    class="restaurant-header__status"
+                    :class="{
+                      'restaurant-header__status--closed':
+                        !restauranteAbierto
+                    }"
+                  >
+                    {{ restauranteAbierto ? "ABIERTO" : "CERRADO" }}
                   </span>
                 </div>
               </div>
@@ -219,8 +285,16 @@ const cambiarFavorito = async () => {
                     <span>Quedan {{ product.cantidad_disponible }}</span>
                   </div>
 
-                  <button type="button" @click="addProduct(product)">
-                    Agregar
+                  <button
+                    type="button"
+                    :disabled="!restauranteAbierto"
+                    @click="addProduct(product)"
+                  >
+                    {{
+                      restauranteAbierto
+                        ? "Agregar"
+                        : "Restaurante cerrado"
+                    }}
                   </button>
                 </div>
               </article>
@@ -281,12 +355,12 @@ const cambiarFavorito = async () => {
               <span>Subtotal</span>
               <strong>{{ formatCurrency(subtotal) }}</strong>
             </div>
-
+            <!-- 
             <div>
               <span>Entrega</span>
               <strong>Retiro en el local</strong>
             </div>
-
+            -->
             <div class="cart__total">
               <span>Total</span>
               <strong>{{ formatCurrency(subtotal) }}</strong>
@@ -296,7 +370,10 @@ const cambiarFavorito = async () => {
           <button
             class="confirm-button"
             type="button"
-            :disabled="cart.length === 0"
+            :disabled="
+              cart.length === 0 ||
+              !restauranteAbierto
+            "
             @click="confirmOrder"
           >
             Proceder al pago
@@ -659,4 +736,15 @@ const cambiarFavorito = async () => {
     grid-template-columns: 1fr;
   }
 }
+
+.restaurant-header__status--closed {
+  background-color: #fdecec;
+  color: #b42318;
+}
+
+.product-card button:disabled {
+  background-color: #aab8ad;
+  cursor: not-allowed;
+}
+
 </style>
