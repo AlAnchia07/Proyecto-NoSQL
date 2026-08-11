@@ -29,11 +29,31 @@ class NotificacionService {
                 }
             },
             {
+                $sort: {
+                    fecha: -1
+                }
+            },
+            {
                 $group:{
                     _id: {
-                        año: {$year: "$fecha"},
-                        mes: {$month: "$fecha"},
-                        dia: {$dayOfMonth: "$fecha"}
+                        año: {
+                            $year: {
+                                date: "$fecha",
+                                timezone: "America/Costa_Rica"
+                            },
+                        },
+                        mes: {
+                            $month: {
+                                date: "$fecha",
+                                timezone: "America/Costa_Rica"
+                            }
+                        },
+                        dia: {
+                            $dayOfMonth: {
+                                date:"$fecha",
+                                timezone: "America/Costa_Rica"
+                            }
+                        }
                     },
                     notificacion: {
                         $push: "$$ROOT"

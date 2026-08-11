@@ -7,6 +7,7 @@ class ReseñaController {
             const reseña = await reseñaService.createCalificacion(req.body);
             res.status(201).json(reseña);
         } catch (err) {
+            console.error("ERROR AL CREAR RESEÑA:", err);
             res.status(500).json({ error: err.message });
         }
     }

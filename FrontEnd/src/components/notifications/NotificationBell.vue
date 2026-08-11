@@ -1,55 +1,68 @@
-<script setup>    
+<script setup>
 import { contarNoLeidas } from '@/services/NotificacionService';
 import { marcarLeidas } from '@/services/NotificacionService';
 import { useUsuarioStore } from "../../stores/UsuarioStore";
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import { Bell } from "lucide-vue-next";
 
 const props = defineProps({
-  rutaNotificaciones: {
-    type: String,
-    required: true
-  }
+    rutaNotificaciones: {
+        type: String,
+        required: true
+    }
 });
 
 const router = useRouter();
-
 const usuarioStore = useUsuarioStore();
 
 const contadorNoLeidas = ref(0);
+
+let intervalo;
 
 async function actualizarNoLeidas() {
     try {
         const datos = await contarNoLeidas(
             usuarioStore.usuario._id
         );
+
         contadorNoLeidas.value = datos.cantidad;
-    
-    } catch(error) {
-         console.error(error);
+
+    } catch (error) {
+        console.error(error);
     }
 }
 
 async function marcarNotificacionesLeidas() {
     try {
-        const datos = await marcarLeidas(
+        await marcarLeidas(
             usuarioStore.usuario._id
         );
-    
-    } catch(error) {
-         console.error(error);
+
+    } catch (error) {
+        console.error(error);
     }
 }
 
-async function abrirNotificaciones() {  
+async function abrirNotificaciones() {
     await marcarNotificacionesLeidas();
+
     contadorNoLeidas.value = 0;
-    console.log(props.rutaNotificaciones);
+
     router.push(props.rutaNotificaciones);
 }
 
-onMounted(actualizarNoLeidas);
+onMounted(() => {
+    actualizarNoLeidas();
+
+    intervalo = setInterval(() => {
+        actualizarNoLeidas();
+    }, 5000);
+});
+
+onUnmounted(() => {
+    clearInterval(intervalo);
+});
 </script>
 
 <template>

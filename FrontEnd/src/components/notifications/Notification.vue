@@ -1,13 +1,23 @@
 <script setup>
     const TITULOS = {
-        PEDIDO: "Actualización de pedido",
-        RESEÑA: "Sobre tu Reseña",
+        PEDIDO_ENVIADO: "Tu pedido ha sido recibido",
+        PEDIDO_RECIBIDO: "Has recibido un pedido",
+        RESEÑA: "Has recibido una reseña",
     };
 
     const ICONOS = {
-        PEDIDO: "bi bi-truck-front-fill text-success",
+        PEDIDO_ENVIADO: "bi bi-truck-front-fill text-success",
+        PEDIDO_RECIBIDO: "bi bi-truck-front-fill text-success",
         RESEÑA: "bi bi-star-fill text-warning",
     }
+
+    const ESTADOS_PEDIDO = [
+        "PENDIENTE",
+        "PREPARANDO",
+        "LISTO_PARA_RETIRAR",
+        "ENTREGADO",
+        "CANCELADO"
+    ];
 
     const props = defineProps({
         notificacion: {
@@ -16,17 +26,32 @@
     });
 
     function formatearHora(fecha) {
-        return new Date(fecha).toLocaleTimeString([], {
+        return new Date(fecha).toLocaleTimeString("es-CR", {
             hour: "2-digit",
-            minute: "2-digit"
-        })
+            minute: "2-digit",
+            hour12: true
+        });
+    }
+
+    function obtenerTitulo(tipo) {
+        if (ESTADOS_PEDIDO.includes(tipo)) {
+            return "Actualización de tu pedido";
+        }
+        return TITULOS[tipo] || "Notificación";
+    }
+
+    function obtenerIcono(tipo) {
+        if (ESTADOS_PEDIDO.includes(tipo)) {
+            return "bi bi-truck-front-fill text-success";
+        }
+        return ICONOS[tipo] || "";
     }
 </script>
 
 <template>
     <div class="notificacion notificacion-card">
         <div class="d-flex flex-column gap-2">
-            <h6 class="mb-3"><span :class="ICONOS[notificacion.tipo]"></span> -{{ TITULOS[notificacion.tipo] }}</h6>
+            <h6 class="mb-3"><span :class="obtenerIcono(notificacion.tipo)"></span> -{{ obtenerTitulo(notificacion.tipo) }}</h6>
             <p>{{ notificacion.mensaje }}</p>
         </div>
 

@@ -2,6 +2,9 @@ const mongoose = require("mongoose");
 
 const Pedido = require("../models/pedidoModel");
 const Producto = require("../models/Producto");
+const NotificacionService = require("./NotificacionService");
+const Cliente = require("../models/Cliente");
+const Restaurante = require("../models/Restaurante");
 
 const TIPOS_ENTREGA = [
   "RETIRO_EN_LOCAL",
@@ -13,6 +16,15 @@ const METODOS_PAGO = [
   "SINPE",
   "EFECTIVO"
 ];
+
+//Este bloque es para armar los mensajes de las notificaciones segun el estado
+const mensajesEstado = {
+    PENDIENTE: ` se ha puesto como pendiente`,
+    PREPARANDO: ` está siendo preparado`,
+    LISTO_PARA_RETIRAR: ` está listo para retirar`,
+    ENTREGADO: ` ha sido entregado`,
+    CANCELADO: ` ha sido cancelado`
+};
 
 const COSTO_ENTREGA_EXPRESS = 1500;
 
@@ -294,6 +306,33 @@ const crearPedido = async (datosPedido) => {
           await nuevoPedido.save({
             session
           });
+
+        //Aqui se crearia las notificaciones 
+        const clienteEncontrado = await Cliente.findById(id_cliente);
+
+        if (!clienteEncontrado) {
+          throw new Error("El cliente no fue encontrado");
+        }
+
+        const restauranteEncontrado = await Restaurante.findById(id_restaurante);
+
+        if(!restauranteEncontrado){
+          throw new Error("El restaurante no fue encontrado")
+        }
+        
+        //Primero se crea la que recibe el cliente
+        await NotificacionService.createNotificacion({
+          id_usuario: clienteEncontrado.id_usuario,
+          mensaje: `El restaurante ${restauranteEncontrado.nombre} ha recibido tu pedido`,
+          tipo: "PEDIDO_ENVIADO"
+        });
+
+        //Luego se crea la que recibe el restaurante
+        await NotificacionService.createNotificacion({
+          id_usuario: restauranteEncontrado.id_usuario,
+          mensaje: `Un cliente ha hecho un pedido a tu restaurante ${restauranteEncontrado.nombre}`,
+          tipo: "PEDIDO_RECIBIDO"
+        })
       }
     );
 
@@ -487,6 +526,28 @@ const cambiarEstadoPedido = async (
         await pedido.save({
           session
         });
+
+      //En esta seccion se va a crear una nueva notificacion según el nuevo estado del pedido
+      const clienteEncontrado = await Cliente.findById(pedido.id_cliente);
+      const restauranteEncontrado = await Restaurante.findById(pedido.id_restaurante);
+
+      if (!clienteEncontrado) {
+          throw new Error("Cliente no encontrado");
+      }
+
+      if (!restauranteEncontrado) {
+        throw new Error("Restaurante no encontrado");
+      }
+
+      const idUsuario = clienteEncontrado.id_usuario;
+      const mensaje = mensajesEstado[nuevoEstado];
+
+      await NotificacionService.createNotificacion({
+        id_usuario: idUsuario,
+        mensaje: `Tu pedido al restaurante ${restauranteEncontrado.nombre} ${mensaje}`,
+        tipo: nuevoEstado
+      })
+      
     });
 
     return pedidoActualizado;

@@ -1,6 +1,7 @@
 const reseña = require("../models/Reseña");
 const cliente = require("../models/Cliente");
 const restaurante = require("../models/Restaurante");
+const notificacionesService = require("./NotificacionService");
 const mongoose = require("mongoose");
 
 class ReseñaService {
@@ -8,6 +9,16 @@ class ReseñaService {
     async createReseña(data) {
         const nuevaReseña = new reseña(data);
         await nuevaReseña.save();
+
+        const restauranteEncontrado = await restaurante.findById(
+            data.id_restaurante
+        );
+  
+        const notificacion = await notificacionesService.createNotificacion({
+            id_usuario: restauranteEncontrado.id_usuario,
+            mensaje: `Un cliente ha calificado tu restaurante ${restauranteEncontrado.nombre}`,
+            tipo: "RESEÑA"
+        })
         return nuevaReseña;
     }
 

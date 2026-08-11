@@ -2,11 +2,12 @@
 console.log("MONTANDO NOTIFICATIONS LIST");
 import Notificacion from "./Notification.vue";
 import { traerNotificaciones } from '@/services/NotificacionService';
-import { ref,onMounted } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import { useUsuarioStore } from "../../stores/UsuarioStore.js";
 
 const notificaciones = ref([]);
 const usuarioStore = useUsuarioStore();
+let intervalo;
 
 async function consultarNotificaciones(){
     try {
@@ -35,9 +36,18 @@ function formatearDia(grupo) {
     });
 }
 
-onMounted(consultarNotificaciones);
 
+onMounted(() => {
+    consultarNotificaciones();
 
+    intervalo = setInterval(() => {
+        consultarNotificaciones();
+    }, 5000);
+});
+
+onUnmounted(() => {
+    clearInterval(intervalo);
+});
 </script>
 
 <template>
