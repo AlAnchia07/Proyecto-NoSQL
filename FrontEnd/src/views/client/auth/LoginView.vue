@@ -26,6 +26,11 @@ const handleLogin = async () => {
 
     const response = await loginService(form.value)
 
+    // Guardar el token de autenticación en localStorage
+    if (response.token) {
+      localStorage.setItem('token', response.token);
+    }
+
     //Se van a guardar los datos tambien en el usuarioStore
     usuarioStore.iniciarSesion(
       {

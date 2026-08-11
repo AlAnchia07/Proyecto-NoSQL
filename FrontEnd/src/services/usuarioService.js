@@ -36,3 +36,33 @@ export async function eliminarUsuarioService(id) {
     throw error.response?.data || error;
   }
 }
+
+export async function obtenerPerfilService() {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.get(`${USUARIOS_URL}/perfil`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error al obtener el perfil:", error);
+    throw error.response?.data || error;
+  }
+}
+
+export async function actualizarPerfilService(datosPerfil) {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.put(`${USUARIOS_URL}/perfil`, datosPerfil, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error al actualizar el perfil:", error);
+    throw error.response?.data || error;
+  }
+}

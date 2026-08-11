@@ -25,7 +25,8 @@ export async function loginService(credenciales) {
       credenciales
     );
 
-    return response.data;
+    return response.data.data || response.data;
+    
   } catch (error) {
     console.error("Error al iniciar sesión:", error);
     throw error.response?.data || error;

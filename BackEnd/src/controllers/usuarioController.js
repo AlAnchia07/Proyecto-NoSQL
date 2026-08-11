@@ -14,6 +14,64 @@ async function obtenerUsuarios(req, res) {
   }
 }
 
+// Obtener el perfil del usuario autenticado actual
+async function obtenerPerfil(req, res) {
+  try {
+    // Nota: Asegúrate de que tu middleware de auth inyecte el ID en req.usuario.id o req.usuarioId
+    const usuarioId = req.usuario?.id || req.usuarioId;
+    
+    const usuario = await Usuario.findById(usuarioId)
+      .select('-contrasena')
+      .populate('restaurante', 'nombre direccion');
+
+    if (!usuario) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
+    }
+
+    return res.status(200).json(usuario);
+  } catch (error) {
+    console.error("Error al obtener perfil:", error);
+    return res.status(500).json({ mensaje: 'Error al obtener la información del perfil.' });
+  }
+}
+
+// Actualizar el perfil del usuario autenticado actual
+async function actualizarPerfil(req, res) {
+  try {
+    const usuarioId = req.usuario?.id || req.usuarioId;
+    const { nombre, correo, contrasena } = req.body;
+
+    const datosActualizados = {
+      nombre,
+      correo
+    };
+
+    // Si mandan nueva contraseña, la hasheamos
+    if (contrasena && contrasena.trim() !== '') {
+      const salt = await bcrypt.genSalt(10);
+      datosActualizados.contrasena = await bcrypt.hash(contrasena, salt);
+    }
+
+    const usuarioActualizado = await Usuario.findByIdAndUpdate(
+      usuarioId,
+      datosActualizados,
+      { new: true, runValidators: true }
+    ).select('-contrasena').populate('restaurante', 'nombre direccion');
+
+    if (!usuarioActualizado) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
+    }
+
+    return res.status(200).json({
+      mensaje: 'Perfil actualizado exitosamente',
+      usuario: usuarioActualizado
+    });
+  } catch (error) {
+    console.error("Error al actualizar perfil:", error);
+    return res.status(500).json({ mensaje: 'Error al actualizar el perfil.' });
+  }
+}
+
 // Actualizar un usuario (datos o reasignación de restaurante)
 async function actualizarUsuario(req, res) {
   try {
@@ -36,7 +94,7 @@ async function actualizarUsuario(req, res) {
     const usuarioActualizado = await Usuario.findByIdAndUpdate(
       id, 
       datosActualizados, 
-      { new: true }
+      { new: true, runValidators: true }
     ).populate('restaurante', 'nombre direccion');
 
     if (!usuarioActualizado) {
@@ -72,6 +130,8 @@ async function eliminarUsuario(req, res) {
 
 module.exports = {
   obtenerUsuarios,
+  obtenerPerfil,
+  actualizarPerfil,
   actualizarUsuario,
   eliminarUsuario
 };
