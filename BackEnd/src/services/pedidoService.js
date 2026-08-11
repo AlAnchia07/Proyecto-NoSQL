@@ -28,6 +28,87 @@ const mensajesEstado = {
 
 const COSTO_ENTREGA_EXPRESS = 1500;
 
+
+const DIAS_SEMANA = [
+  "domingo",
+  "lunes",
+  "martes",
+  "miercoles",
+  "jueves",
+  "viernes",
+  "sabado"
+];
+
+const obtenerFechaHoraCostaRica = () => {
+  const partes = new Intl.DateTimeFormat(
+    "en-US",
+    {
+      timeZone: "America/Costa_Rica",
+      weekday: "long",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false
+    }
+  ).formatToParts(new Date());
+
+  const obtenerParte = (tipo) =>
+    partes.find(
+      (parte) => parte.type === tipo
+    )?.value;
+
+  const dias = {
+    Sunday: "domingo",
+    Monday: "lunes",
+    Tuesday: "martes",
+    Wednesday: "miercoles",
+    Thursday: "jueves",
+    Friday: "viernes",
+    Saturday: "sabado"
+  };
+
+  return {
+    dia: dias[obtenerParte("weekday")],
+    hora: `${obtenerParte("hour")}:${obtenerParte("minute")}`
+  };
+};
+
+const validarRestauranteAbierto = (
+  restaurante
+) => {
+  if (restaurante.estado !== "ACTIVO") {
+    throw new Error(
+      "El restaurante no se encuentra activo."
+    );
+  }
+
+  const { dia, hora } =
+    obtenerFechaHoraCostaRica();
+
+  const horarioHoy =
+    restaurante.horario?.[dia];
+
+  if (
+    !horarioHoy?.apertura ||
+    !horarioHoy?.cierre
+  ) {
+    throw new Error(
+      "El restaurante se encuentra cerrado en este momento."
+    );
+  }
+
+  const apertura = horarioHoy.apertura;
+  const cierre = horarioHoy.cierre;
+
+  if (
+    hora < apertura ||
+    hora >= cierre
+  ) {
+    throw new Error(
+      "El restaurante se encuentra cerrado en este momento."
+    );
+  }
+};
+
 //Crear un nuevo pedido
 const crearPedido = async (datosPedido) => {
   const {
@@ -101,6 +182,32 @@ const crearPedido = async (datosPedido) => {
       "El descuento no puede ser negativo."
     );
   }
+
+  const restaurante =
+      await Restaurante.findById(
+        id_restaurante
+      );
+
+    if (!restaurante) {
+      throw new Error(
+        "El restaurante no fue encontrado."
+      );
+    }
+
+    validarRestauranteAbierto(
+      restaurante
+    );
+
+    if (
+      !restaurante.tipos_entrega.includes(
+        tipo_entrega
+      )
+    ) {
+      throw new Error(
+        "El restaurante no ofrece el tipo de entrega seleccionado."
+      );
+    }
+
 
   const session =
     await mongoose.startSession();
